@@ -82,19 +82,19 @@ function App() {
 
   useEffect(() => {
 
-    fetch("http://127.0.0.1:5000/members")
+   https://afm-backend.onrender.com
       .then((res) => res.json())
       .then((data) => setMembers(data));
 
-    fetch("http://127.0.0.1:5000/finances")
+    https://afm-backend.onrender.com
       .then((res) => res.json())
       .then((data) => setFinances(data));
 
-    fetch("http://127.0.0.1:5000/attendance")
+    https://afm-backend.onrender.com
       .then((res) => res.json())
       .then((data) => setAttendance(data));
 
-    fetch("http://127.0.0.1:5000/events")
+    https://afm-backend.onrender.com
       .then((res) => res.json())
       .then((data) => setEvents(data));
 
@@ -107,7 +107,7 @@ function App() {
   const handleLogin = async () => {
 
     const response = await fetch(
-      "http://127.0.0.1:5000/login",
+      https://afm-backend.onrender.com
       {
         method: "POST",
         headers: {
@@ -150,7 +150,7 @@ function App() {
   const backupDatabase = () => {
 
     window.open(
-      "http://127.0.0.1:5000/backup",
+      https://afm-backend.onrender.com
       "_blank"
     );
 
@@ -174,7 +174,7 @@ function App() {
     if (editingId) {
 
       const response = await fetch(
-        `http://127.0.0.1:5000/update_member/${editingId}`,
+        https://afm-backend.onrender.com
         {
           method: "PUT",
           headers: {
@@ -199,7 +199,7 @@ function App() {
     } else {
 
       const response = await fetch(
-        "http://127.0.0.1:5000/add_member",
+        https://afm-backend.onrender.com
         {
           method: "POST",
           headers: {
@@ -233,7 +233,7 @@ function App() {
   const deleteMember = async (id) => {
 
     await fetch(
-      `http://127.0.0.1:5000/delete_member/${id}`,
+      https://afm-backend.onrender.com
       {
         method: "DELETE",
       }
@@ -254,7 +254,7 @@ function App() {
   const markAttendance = async (memberName) => {
 
     const response = await fetch(
-      "http://127.0.0.1:5000/add_attendance",
+      https://afm-backend.onrender.com
       {
         method: "POST",
         headers: {
@@ -279,7 +279,7 @@ function App() {
   const addFinance = async () => {
 
     const response = await fetch(
-      "http://127.0.0.1:5000/add_finance",
+      https://afm-backend.onrender.com
       {
         method: "POST",
         headers: {
@@ -308,7 +308,7 @@ function App() {
   const addEvent = async () => {
 
     const response = await fetch(
-      "http://127.0.0.1:5000/add_event",
+      "https://afm-backend.onrender.com
       {
         method: "POST",
         headers: {
