@@ -8,7 +8,8 @@ CORS(app)
 DATABASE = "church.db"
 
 
-# CREATE DATABASE TABLES
+# ================= DATABASE =================
+
 def init_db():
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
@@ -23,7 +24,7 @@ def init_db():
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS events (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        title TEXT
+        title TEXT NOT NULL
     )
     """)
 
@@ -41,16 +42,6 @@ def init_db():
     )
     """)
 
-    # SAMPLE DATA
-    cursor.execute("SELECT * FROM members")
-    if len(cursor.fetchall()) == 0:
-        cursor.execute("INSERT INTO members (name) VALUES ('John')")
-        cursor.execute("INSERT INTO members (name) VALUES ('Mary')")
-
-    cursor.execute("SELECT * FROM finances")
-    if len(cursor.fetchall()) == 0:
-        cursor.execute("INSERT INTO finances (amount) VALUES (50)")
-
     conn.commit()
     conn.close()
 
@@ -58,13 +49,17 @@ def init_db():
 init_db()
 
 
-# HOME
+# ================= HOME =================
+
 @app.route("/")
 def home():
-    return jsonify({"message": "AFM Church Backend Running"})
+    return jsonify({
+        "message": "AFM Church Backend Running"
+    })
 
 
-# GET MEMBERS
+# ================= MEMBERS =================
+
 @app.route("/members", methods=["GET"])
 def get_members():
     conn = sqlite3.connect(DATABASE)
@@ -72,6 +67,8 @@ def get_members():
 
     cursor.execute("SELECT * FROM members")
     rows = cursor.fetchall()
+
+    conn.close()
 
     members = []
 
@@ -81,12 +78,9 @@ def get_members():
             "name": row[1]
         })
 
-    conn.close()
-
     return jsonify(members)
 
 
-# ADD MEMBER
 @app.route("/members", methods=["POST"])
 def add_member():
     data = request.get_json()
@@ -101,24 +95,45 @@ def add_member():
 
     conn.commit()
 
-    new_id = cursor.lastrowid
+    member_id = cursor.lastrowid
 
     conn.close()
 
     return jsonify({
-        "id": new_id,
+        "id": member_id,
         "name": data["name"]
     })
 
 
-# EVENTS
-@app.route("/events")
+@app.route("/members/<int:id>", methods=["DELETE"])
+def delete_member(id):
+    conn = sqlite3.connect(DATABASE)
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "DELETE FROM members WHERE id = ?",
+        (id,)
+    )
+
+    conn.commit()
+    conn.close()
+
+    return jsonify({
+        "message": "Member deleted"
+    })
+
+
+# ================= EVENTS =================
+
+@app.route("/events", methods=["GET"])
 def get_events():
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
 
     cursor.execute("SELECT * FROM events")
     rows = cursor.fetchall()
+
+    conn.close()
 
     events = []
 
@@ -128,19 +143,62 @@ def get_events():
             "title": row[1]
         })
 
-    conn.close()
-
     return jsonify(events)
 
 
-# ATTENDANCE
-@app.route("/attendance")
+@app.route("/events", methods=["POST"])
+def add_event():
+    data = request.get_json()
+
+    conn = sqlite3.connect(DATABASE)
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "INSERT INTO events (title) VALUES (?)",
+        (data["title"],)
+    )
+
+    conn.commit()
+
+    event_id = cursor.lastrowid
+
+    conn.close()
+
+    return jsonify({
+        "id": event_id,
+        "title": data["title"]
+    })
+
+
+@app.route("/events/<int:id>", methods=["DELETE"])
+def delete_event(id):
+    conn = sqlite3.connect(DATABASE)
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "DELETE FROM events WHERE id = ?",
+        (id,)
+    )
+
+    conn.commit()
+    conn.close()
+
+    return jsonify({
+        "message": "Event deleted"
+    })
+
+
+# ================= ATTENDANCE =================
+
+@app.route("/attendance", methods=["GET"])
 def get_attendance():
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
 
     cursor.execute("SELECT * FROM attendance")
     rows = cursor.fetchall()
+
+    conn.close()
 
     attendance = []
 
@@ -150,19 +208,20 @@ def get_attendance():
             "member_name": row[1]
         })
 
-    conn.close()
-
     return jsonify(attendance)
 
 
-# FINANCES
-@app.route("/finances")
+# ================= FINANCES =================
+
+@app.route("/finances", methods=["GET"])
 def get_finances():
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
 
     cursor.execute("SELECT * FROM finances")
     rows = cursor.fetchall()
+
+    conn.close()
 
     finances = []
 
@@ -172,10 +231,52 @@ def get_finances():
             "amount": row[1]
         })
 
-    conn.close()
-
     return jsonify(finances)
 
+
+@app.route("/finances", methods=["POST"])
+def add_finance():
+    data = request.get_json()
+
+    conn = sqlite3.connect(DATABASE)
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "INSERT INTO finances (amount) VALUES (?)",
+        (data["amount"],)
+    )
+
+    conn.commit()
+
+    finance_id = cursor.lastrowid
+
+    conn.close()
+
+    return jsonify({
+        "id": finance_id,
+        "amount": data["amount"]
+    })
+
+
+@app.route("/finances/<int:id>", methods=["DELETE"])
+def delete_finance(id):
+    conn = sqlite3.connect(DATABASE)
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "DELETE FROM finances WHERE id = ?",
+        (id,)
+    )
+
+    conn.commit()
+    conn.close()
+
+    return jsonify({
+        "message": "Finance deleted"
+    })
+
+
+# ================= RUN APP =================
 
 if __name__ == "__main__":
     app.run(debug=True)
