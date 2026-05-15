@@ -1,3 +1,4 @@
+import logo from "./images/logo.png";
 import React, { useEffect, useState } from "react";
 import "./App.css";
 
@@ -32,6 +33,10 @@ function App() {
       {/* SIDEBAR */}
       <aside className="sidebar">
         <div className="logo-section">
+  <img src={logo} alt="Church Logo" className="logo" />
+  <h2>AFM Church</h2>
+</div>
+        <div className="logo-section">
           <img
             src="https://upload.wikimedia.org/wikipedia/commons/6/65/No-Image-Placeholder.svg"
             alt="Church Logo"
@@ -54,6 +59,16 @@ function App() {
 
       {/* MAIN CONTENT */}
       <main className="main-content">
+        <div className="topbar">
+  <div>
+    <h1>AFM Church Siloam System</h1>
+    <p>Church Management Dashboard</p>
+  </div>
+
+  <button className="admin-box">
+    Admin
+  </button>
+</div>
         {/* TOP NAVBAR */}
         <header className="topbar">
           <div>
