@@ -1,371 +1,52 @@
-import logo from "./images/logo.png";
-import React, { useEffect, useState } from "react";
-import "./App.css";
-
-function App() {
-  const [members, setMembers] = useState([]);
-  const [events, setEvents] = useState([]);
-  const [attendance, setAttendance] = useState([]);
-  const [finances, setFinances] = useState([]);
-
-  const [newMember, setNewMember] = useState("");
-  const [newEvent, setNewEvent] = useState("");
-  const [newFinance, setNewFinance] = useState("");
-
-  const API = "https://afm-backend.onrender.com";
-
-  useEffect(() => {
-    fetch(`${API}/members`)
-      .then((res) => res.json())
-      .then((data) => setMembers(data));
-
-    fetch(`${API}/events`)
-      .then((res) => res.json())
-      .then((data) => setEvents(data));
-
-    fetch(`${API}/attendance`)
-      .then((res) => res.json())
-      .then((data) => setAttendance(data));
-
-    fetch(`${API}/finances`)
-      .then((res) => res.json())
-      .then((data) => setFinances(data));
-  }, []);
-
-  // ================= MEMBERS =================
-
-  const addMember = async () => {
-    if (!newMember) return;
-
-    const response = await fetch(`${API}/members`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        name: newMember,
-      }),
-    });
-
-    const data = await response.json();
-
-    setMembers([...members, data]);
-    setNewMember("");
-  };
-
-  const deleteMember = async (id) => {
-    await fetch(`${API}/members/${id}`, {
-      method: "DELETE",
-    });
-
-    setMembers(
-      members.filter((member) => member.id !== id)
-    );
-  };
-
-  // ================= EVENTS =================
-
-  const addEvent = async () => {
-    if (!newEvent) return;
-
-    const response = await fetch(`${API}/events`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        title: newEvent,
-      }),
-    });
-
-    const data = await response.json();
-
-    setEvents([...events, data]);
-    setNewEvent("");
-  };
-
-  const deleteEvent = async (id) => {
-    await fetch(`${API}/events/${id}`, {
-      method: "DELETE",
-    });
-
-    setEvents(events.filter((event) => event.id !== id));
-  };
-
-  // ================= FINANCES =================
-
-  const addFinance = async () => {
-    if (!newFinance) return;
-
-    const response = await fetch(`${API}/finances`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        amount: newFinance,
-      }),
-    });
-
-    const data = await response.json();
-
-    setFinances([...finances, data]);
-    setNewFinance("");
-  };
-
-  const deleteFinance = async (id) => {
-    await fetch(`${API}/finances/${id}`, {
-      method: "DELETE",
-    });
-
-    setFinances(
-      finances.filter((finance) => finance.id !== id)
-    );
-  };
-
-  return (
-    <div className="dashboard">
-
-      {/* SIDEBAR */}
-
-      <aside className="sidebar">
-        <div className="logo-section">
-          <img
-            src={logo}
-            alt="Church Logo"
-            className="logo"
-          />
-
-          <h2>AFM Church</h2>
-        </div>
-
-        <ul>
-          <li>Dashboard</li>
-          <li>Members</li>
-          <li>Events</li>
-          <li>Attendance</li>
-          <li>Finances</li>
-          <li>Reports</li>
-          <li>Settings</li>
-        </ul>
-      </aside>
-
-      {/* MAIN CONTENT */}
-
-      <main className="main-content">
-
-        {/* TOPBAR */}
-
-        <div className="topbar">
-          <div>
-            <h1>AFM Church Siloam System</h1>
-            <p>Church Management Dashboard</p>
-          </div>
-
-          <div className="admin-box">
-            <div className="admin-avatar">A</div>
-
-            <div>
-              <h4>Administrator</h4>
-              <p>Admin Access</p>
-            </div>
-          </div>
-        </div>
-
-        {/* DASHBOARD CARDS */}
-
-        <div className="cards">
-
-          <div className="card">
-            <h3>Total Members</h3>
-            <p>{members.length}</p>
-          </div>
-
-          <div className="card">
-            <h3>Total Events</h3>
-            <p>{events.length}</p>
-          </div>
-
-          <div className="card">
-            <h3>Attendance Records</h3>
-            <p>{attendance.length}</p>
-          </div>
-
-          <div className="card">
-            <h3>Total Finances</h3>
-            <p>{finances.length}</p>
-          </div>
-
-        </div>
-
-        {/* ADD MEMBER */}
-
-        <div className="form-section">
-          <h2>Add Member</h2>
-
-          <div className="member-form">
-            <input
-              type="text"
-              placeholder="Enter member name"
-              value={newMember}
-              onChange={(e) =>
-                setNewMember(e.target.value)
-              }
-            />
-
-            <button onClick={addMember}>
-              Add Member
-            </button>
-          </div>
-        </div>
-
-        {/* MEMBERS TABLE */}
-
-        <div className="table-section">
-          <h2>Members</h2>
-
-          <table>
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {members.map((member) => (
-                <tr key={member.id}>
-                  <td>{member.name}</td>
-
-                  <td>
-                    <button
-                      className="delete-btn"
-                      onClick={() =>
-                        deleteMember(member.id)
-                      }
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* ADD EVENT */}
-
-        <div className="form-section">
-          <h2>Add Event</h2>
-
-          <div className="member-form">
-            <input
-              type="text"
-              placeholder="Enter event name"
-              value={newEvent}
-              onChange={(e) =>
-                setNewEvent(e.target.value)
-              }
-            />
-
-            <button onClick={addEvent}>
-              Add Event
-            </button>
-          </div>
-        </div>
-
-        {/* EVENTS TABLE */}
-
-        <div className="table-section">
-          <h2>Events</h2>
-
-          <table>
-            <thead>
-              <tr>
-                <th>Event</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {events.map((event) => (
-                <tr key={event.id}>
-                  <td>{event.title}</td>
-
-                  <td>
-                    <button
-                      className="delete-btn"
-                      onClick={() =>
-                        deleteEvent(event.id)
-                      }
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* ADD FINANCE */}
-
-        <div className="form-section">
-          <h2>Add Finance Record</h2>
-
-          <div className="member-form">
-            <input
-              type="number"
-              placeholder="Enter amount"
-              value={newFinance}
-              onChange={(e) =>
-                setNewFinance(e.target.value)
-              }
-            />
-
-            <button onClick={addFinance}>
-              Add Finance
-            </button>
-          </div>
-        </div>
-
-        {/* FINANCE TABLE */}
-
-        <div className="table-section">
-          <h2>Finance Records</h2>
-
-          <table>
-            <thead>
-              <tr>
-                <th>Amount</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {finances.map((finance) => (
-                <tr key={finance.id}>
-                  <td>N$ {finance.amount}</td>
-
-                  <td>
-                    <button
-                      className="delete-btn"
-                      onClick={() =>
-                        deleteFinance(finance.id)
-                      }
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-      </main>
-    </div>
+/* LOGIN PAGE */
+
+.login-page {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(
+    to bottom right,
+    #0f172a,
+    #111827
   );
 }
 
-export default App;
+.login-box {
+  background: white;
+  padding: 40px;
+  border-radius: 16px;
+  width: 350px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  box-shadow: 0 2px 20px rgba(0,0,0,0.2);
+}
+
+.login-box h1 {
+  margin-bottom: 15px;
+  text-align: center;
+  color: #111827;
+}
+
+.login-box input {
+  padding: 14px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  font-size: 15px;
+}
+
+.login-box button {
+  padding: 14px;
+  border: none;
+  background: #111827;
+  color: white;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: bold;
+}
+
+.login-box button:hover {
+  background: #1e293b;
+}

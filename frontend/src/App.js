@@ -1,25 +1,40 @@
 import logo from "./images/logo.png";
 import React, { useEffect, useState } from "react";
 import "./App.css";
+import Login from "./Login";
 
 function App() {
+
+  // LOGIN STATE
+
+  const [isLoggedIn, setIsLoggedIn] =
+    useState(false);
+
+  // DATA STATES
+
   const [members, setMembers] = useState([]);
   const [events, setEvents] = useState([]);
   const [attendance, setAttendance] = useState([]);
   const [finances, setFinances] = useState([]);
 
+  // FORM STATES
+
   const [newMember, setNewMember] = useState("");
   const [newEvent, setNewEvent] = useState("");
   const [newFinance, setNewFinance] = useState("");
-  const [newAttendance, setNewAttendance] = useState("");
+  const [newAttendance, setNewAttendance] =
+    useState("");
 
   const API = "https://afm-backend.onrender.com";
+
+  // LOAD DATA
 
   useEffect(() => {
     loadData();
   }, []);
 
   const loadData = () => {
+
     fetch(`${API}/members`)
       .then((res) => res.json())
       .then((data) => setMembers(data));
@@ -40,6 +55,7 @@ function App() {
   // ================= MEMBERS =================
 
   const addMember = async () => {
+
     if (!newMember) return;
 
     await fetch(`${API}/members`, {
@@ -57,6 +73,7 @@ function App() {
   };
 
   const deleteMember = async (id) => {
+
     await fetch(`${API}/members/${id}`, {
       method: "DELETE",
     });
@@ -67,6 +84,7 @@ function App() {
   // ================= EVENTS =================
 
   const addEvent = async () => {
+
     if (!newEvent) return;
 
     await fetch(`${API}/events`, {
@@ -84,6 +102,7 @@ function App() {
   };
 
   const deleteEvent = async (id) => {
+
     await fetch(`${API}/events/${id}`, {
       method: "DELETE",
     });
@@ -94,6 +113,7 @@ function App() {
   // ================= FINANCES =================
 
   const addFinance = async () => {
+
     if (!newFinance) return;
 
     await fetch(`${API}/finances`, {
@@ -111,6 +131,7 @@ function App() {
   };
 
   const deleteFinance = async (id) => {
+
     await fetch(`${API}/finances/${id}`, {
       method: "DELETE",
     });
@@ -121,6 +142,7 @@ function App() {
   // ================= ATTENDANCE =================
 
   const addAttendance = async () => {
+
     if (!newAttendance) return;
 
     await fetch(`${API}/attendance`, {
@@ -138,6 +160,7 @@ function App() {
   };
 
   const deleteAttendance = async (id) => {
+
     await fetch(`${API}/attendance/${id}`, {
       method: "DELETE",
     });
@@ -145,13 +168,27 @@ function App() {
     loadData();
   };
 
+  // ================= LOGIN CHECK =================
+
+  if (!isLoggedIn) {
+    return (
+      <Login
+        onLogin={() => setIsLoggedIn(true)}
+      />
+    );
+  }
+
+  // ================= DASHBOARD =================
+
   return (
     <div className="dashboard">
 
       {/* SIDEBAR */}
 
       <aside className="sidebar">
+
         <div className="logo-section">
+
           <img
             src={logo}
             alt="Church Logo"
@@ -159,6 +196,7 @@ function App() {
           />
 
           <h2>AFM Church</h2>
+
         </div>
 
         <ul>
@@ -170,6 +208,7 @@ function App() {
           <li>Reports</li>
           <li>Settings</li>
         </ul>
+
       </aside>
 
       {/* MAIN CONTENT */}
@@ -179,19 +218,25 @@ function App() {
         {/* TOPBAR */}
 
         <div className="topbar">
+
           <div>
             <h1>AFM Church Siloam System</h1>
             <p>Church Management Dashboard</p>
           </div>
 
           <div className="admin-box">
-            <div className="admin-avatar">A</div>
+
+            <div className="admin-avatar">
+              A
+            </div>
 
             <div>
               <h4>Administrator</h4>
               <p>Admin Access</p>
             </div>
+
           </div>
+
         </div>
 
         {/* DASHBOARD CARDS */}
@@ -223,9 +268,11 @@ function App() {
         {/* ADD MEMBER */}
 
         <div className="form-section">
+
           <h2>Add Member</h2>
 
           <div className="member-form">
+
             <input
               type="text"
               placeholder="Enter member name"
@@ -238,15 +285,19 @@ function App() {
             <button onClick={addMember}>
               Add Member
             </button>
+
           </div>
+
         </div>
 
         {/* MEMBERS TABLE */}
 
         <div className="table-section">
+
           <h2>Members</h2>
 
           <table>
+
             <thead>
               <tr>
                 <th>Name</th>
@@ -255,11 +306,15 @@ function App() {
             </thead>
 
             <tbody>
+
               {members.map((member) => (
+
                 <tr key={member.id}>
+
                   <td>{member.name}</td>
 
                   <td>
+
                     <button
                       className="delete-btn"
                       onClick={() =>
@@ -268,19 +323,27 @@ function App() {
                     >
                       Delete
                     </button>
+
                   </td>
+
                 </tr>
+
               ))}
+
             </tbody>
+
           </table>
+
         </div>
 
         {/* ADD EVENT */}
 
         <div className="form-section">
+
           <h2>Add Event</h2>
 
           <div className="member-form">
+
             <input
               type="text"
               placeholder="Enter event name"
@@ -293,15 +356,19 @@ function App() {
             <button onClick={addEvent}>
               Add Event
             </button>
+
           </div>
+
         </div>
 
         {/* EVENTS TABLE */}
 
         <div className="table-section">
+
           <h2>Events</h2>
 
           <table>
+
             <thead>
               <tr>
                 <th>Event</th>
@@ -310,11 +377,15 @@ function App() {
             </thead>
 
             <tbody>
+
               {events.map((event) => (
+
                 <tr key={event.id}>
+
                   <td>{event.title}</td>
 
                   <td>
+
                     <button
                       className="delete-btn"
                       onClick={() =>
@@ -323,19 +394,27 @@ function App() {
                     >
                       Delete
                     </button>
+
                   </td>
+
                 </tr>
+
               ))}
+
             </tbody>
+
           </table>
+
         </div>
 
         {/* ADD FINANCE */}
 
         <div className="form-section">
+
           <h2>Add Finance Record</h2>
 
           <div className="member-form">
+
             <input
               type="number"
               placeholder="Enter amount"
@@ -348,15 +427,19 @@ function App() {
             <button onClick={addFinance}>
               Add Finance
             </button>
+
           </div>
+
         </div>
 
         {/* FINANCE TABLE */}
 
         <div className="table-section">
+
           <h2>Finance Records</h2>
 
           <table>
+
             <thead>
               <tr>
                 <th>Amount</th>
@@ -365,11 +448,15 @@ function App() {
             </thead>
 
             <tbody>
+
               {finances.map((finance) => (
+
                 <tr key={finance.id}>
+
                   <td>N$ {finance.amount}</td>
 
                   <td>
+
                     <button
                       className="delete-btn"
                       onClick={() =>
@@ -378,19 +465,27 @@ function App() {
                     >
                       Delete
                     </button>
+
                   </td>
+
                 </tr>
+
               ))}
+
             </tbody>
+
           </table>
+
         </div>
 
         {/* ADD ATTENDANCE */}
 
         <div className="form-section">
+
           <h2>Mark Attendance</h2>
 
           <div className="member-form">
+
             <input
               type="text"
               placeholder="Enter member name"
@@ -403,15 +498,19 @@ function App() {
             <button onClick={addAttendance}>
               Add Attendance
             </button>
+
           </div>
+
         </div>
 
         {/* ATTENDANCE TABLE */}
 
         <div className="table-section">
+
           <h2>Attendance Records</h2>
 
           <table>
+
             <thead>
               <tr>
                 <th>Member Name</th>
@@ -420,11 +519,15 @@ function App() {
             </thead>
 
             <tbody>
+
               {attendance.map((record) => (
+
                 <tr key={record.id}>
+
                   <td>{record.member_name}</td>
 
                   <td>
+
                     <button
                       className="delete-btn"
                       onClick={() =>
@@ -433,14 +536,21 @@ function App() {
                     >
                       Delete
                     </button>
+
                   </td>
+
                 </tr>
+
               ))}
+
             </tbody>
+
           </table>
+
         </div>
 
       </main>
+
     </div>
   );
 }
