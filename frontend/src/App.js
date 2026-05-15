@@ -37,10 +37,7 @@ function App() {
   <h2>AFM Church</h2>
 </div>
 
-            src="https://upload.wikimedia.org/wikipedia/commons/6/65/No-Image-Placeholder.svg"
-            alt="Church Logo"
-            className="logo"
-          />
+
 
           <h2>AFM Church</h2>
         </div>
