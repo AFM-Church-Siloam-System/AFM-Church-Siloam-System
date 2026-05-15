@@ -88,7 +88,39 @@ function App() {
             <h2>{finances.length}</h2>
           </div>
         </div>
+<div className="form-section">
+  <h2>Add Member</h2>
 
+  <form
+    onSubmit={(e) => {
+      e.preventDefault();
+
+      fetch(`${API}/members`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: e.target.name.value,
+        }),
+      })
+        .then((res) => res.json())
+        .then((newMember) => {
+          setMembers([...members, newMember]);
+          e.target.reset();
+        });
+    }}
+  >
+    <input
+      type="text"
+      name="name"
+      placeholder="Enter member name"
+      required
+    />
+
+    <button type="submit">Add Member</button>
+  </form>
+</div>
         <div className="table-section">
           <h2>Members</h2>
 
