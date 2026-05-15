@@ -1,12 +1,15 @@
+import logo from "./images/logo.png";
 import React, { useEffect, useState } from "react";
 import "./App.css";
-import logo from "./images/logo.png";
 
 function App() {
   const [members, setMembers] = useState([]);
   const [events, setEvents] = useState([]);
   const [attendance, setAttendance] = useState([]);
   const [finances, setFinances] = useState([]);
+
+  const [newMember, setNewMember] = useState("");
+  const [newEvent, setNewEvent] = useState("");
 
   const API = "https://afm-backend.onrender.com";
 
@@ -28,17 +31,80 @@ function App() {
       .then((data) => setFinances(data));
   }, []);
 
+  // ADD MEMBER
+
+  const addMember = async () => {
+    if (!newMember) return;
+
+    const response = await fetch(`${API}/members`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        name: newMember,
+      }),
+    });
+
+    const data = await response.json();
+
+    setMembers([...members, data]);
+    setNewMember("");
+  };
+
+  // DELETE MEMBER
+
+  const deleteMember = async (id) => {
+    await fetch(`${API}/members/${id}`, {
+      method: "DELETE",
+    });
+
+    setMembers(members.filter((member) => member.id !== id));
+  };
+
+  // ADD EVENT
+
+  const addEvent = async () => {
+    if (!newEvent) return;
+
+    const response = await fetch(`${API}/events`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        title: newEvent,
+      }),
+    });
+
+    const data = await response.json();
+
+    setEvents([...events, data]);
+    setNewEvent("");
+  };
+
+  // DELETE EVENT
+
+  const deleteEvent = async (id) => {
+    await fetch(`${API}/events/${id}`, {
+      method: "DELETE",
+    });
+
+    setEvents(events.filter((event) => event.id !== id));
+  };
+
   return (
     <div className="dashboard">
 
-      {/* Sidebar */}
+      {/* SIDEBAR */}
+
       <aside className="sidebar">
         <div className="logo-section">
           <img src={logo} alt="Church Logo" className="logo" />
           <h2>AFM Church</h2>
         </div>
 
-        <ul className="menu">
+        <ul>
           <li>Dashboard</li>
           <li>Members</li>
           <li>Events</li>
@@ -49,10 +115,12 @@ function App() {
         </ul>
       </aside>
 
-      {/* Main Content */}
+      {/* MAIN CONTENT */}
+
       <main className="main-content">
 
-        {/* Topbar */}
+        {/* TOPBAR */}
+
         <div className="topbar">
           <div>
             <h1>AFM Church Siloam System</h1>
@@ -63,75 +131,59 @@ function App() {
             <div className="admin-avatar">A</div>
 
             <div>
-              <strong>Administrator</strong>
+              <h4>Administrator</h4>
               <p>Admin Access</p>
             </div>
           </div>
         </div>
 
-        {/* Dashboard Cards */}
+        {/* DASHBOARD CARDS */}
+
         <div className="cards">
 
           <div className="card">
             <h3>Total Members</h3>
-            <h2>{members.length}</h2>
+            <p>{members.length}</p>
           </div>
 
           <div className="card">
             <h3>Total Events</h3>
-            <h2>{events.length}</h2>
+            <p>{events.length}</p>
           </div>
 
           <div className="card">
             <h3>Attendance Records</h3>
-            <h2>{attendance.length}</h2>
+            <p>{attendance.length}</p>
           </div>
 
           <div className="card">
             <h3>Total Finances</h3>
-            <h2>{finances.length}</h2>
+            <p>{finances.length}</p>
           </div>
 
         </div>
 
-        {/* Add Member Form */}
+        {/* ADD MEMBER */}
+
         <div className="form-section">
           <h2>Add Member</h2>
 
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-
-              fetch(`${API}/members`, {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                  name: e.target.name.value,
-                }),
-              })
-                .then((res) => res.json())
-                .then((newMember) => {
-                  setMembers([...members, newMember]);
-                  e.target.reset();
-                });
-            }}
-          >
+          <div className="member-form">
             <input
               type="text"
-              name="name"
               placeholder="Enter member name"
-              required
+              value={newMember}
+              onChange={(e) => setNewMember(e.target.value)}
             />
 
-            <button type="submit">
+            <button onClick={addMember}>
               Add Member
             </button>
-          </form>
+          </div>
         </div>
 
-        {/* Members Table */}
+        {/* MEMBERS TABLE */}
+
         <div className="table-section">
           <h2>Members</h2>
 
@@ -146,28 +198,67 @@ function App() {
             <tbody>
               {members.map((member) => (
                 <tr key={member.id}>
-
                   <td>{member.name}</td>
 
                   <td>
                     <button
                       className="delete-btn"
-                      onClick={() => {
-                        fetch(`${API}/members/${member.id}`, {
-                          method: "DELETE",
-                        }).then(() => {
-                          setMembers(
-                            members.filter(
-                              (m) => m.id !== member.id
-                            )
-                          );
-                        });
-                      }}
+                      onClick={() => deleteMember(member.id)}
                     >
                       Delete
                     </button>
                   </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
 
+        {/* ADD EVENT */}
+
+        <div className="form-section">
+          <h2>Add Event</h2>
+
+          <div className="member-form">
+            <input
+              type="text"
+              placeholder="Enter event name"
+              value={newEvent}
+              onChange={(e) => setNewEvent(e.target.value)}
+            />
+
+            <button onClick={addEvent}>
+              Add Event
+            </button>
+          </div>
+        </div>
+
+        {/* EVENTS TABLE */}
+
+        <div className="table-section">
+          <h2>Events</h2>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Event</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {events.map((event) => (
+                <tr key={event.id}>
+                  <td>{event.title}</td>
+
+                  <td>
+                    <button
+                      className="delete-btn"
+                      onClick={() => deleteEvent(event.id)}
+                    >
+                      Delete
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
