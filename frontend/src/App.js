@@ -12,29 +12,34 @@ function App() {
   useEffect(() => {
     fetch(`${API}/members`)
       .then((res) => res.json())
-      .then((data) => setMembers(data))
-      .catch((err) => console.log(err));
+      .then((data) => setMembers(data));
 
     fetch(`${API}/events`)
       .then((res) => res.json())
-      .then((data) => setEvents(data))
-      .catch((err) => console.log(err));
+      .then((data) => setEvents(data));
 
     fetch(`${API}/attendance`)
       .then((res) => res.json())
-      .then((data) => setAttendance(data))
-      .catch((err) => console.log(err));
+      .then((data) => setAttendance(data));
 
     fetch(`${API}/finances`)
       .then((res) => res.json())
-      .then((data) => setFinances(data))
-      .catch((err) => console.log(err));
+      .then((data) => setFinances(data));
   }, []);
 
   return (
     <div className="dashboard">
+      {/* SIDEBAR */}
       <aside className="sidebar">
-        <h2>AFM Church</h2>
+        <div className="logo-section">
+          <img
+            src="https://upload.wikimedia.org/wikipedia/commons/6/65/No-Image-Placeholder.svg"
+            alt="Church Logo"
+            className="logo"
+          />
+
+          <h2>AFM Church</h2>
+        </div>
 
         <ul>
           <li>Dashboard</li>
@@ -42,14 +47,31 @@ function App() {
           <li>Events</li>
           <li>Attendance</li>
           <li>Finances</li>
+          <li>Reports</li>
+          <li>Settings</li>
         </ul>
       </aside>
 
+      {/* MAIN CONTENT */}
       <main className="main-content">
-        <header className="header">
-          <h1>AFM Church Siloam System</h1>
+        {/* TOP NAVBAR */}
+        <header className="topbar">
+          <div>
+            <h1>AFM Church Siloam System</h1>
+            <p>Church Management Dashboard</p>
+          </div>
+
+          <div className="admin-box">
+            <div className="admin-avatar">A</div>
+
+            <div>
+              <h4>Administrator</h4>
+              <small>Admin Access</small>
+            </div>
+          </div>
         </header>
 
+        {/* CARDS */}
         <div className="cards">
           <div className="card">
             <h3>Total Members</h3>
@@ -72,6 +94,7 @@ function App() {
           </div>
         </div>
 
+        {/* MEMBERS */}
         <div className="section">
           <h2>Members</h2>
 
@@ -94,6 +117,7 @@ function App() {
           </div>
         </div>
 
+        {/* FINANCES */}
         <div className="section">
           <h2>Finances</h2>
 
