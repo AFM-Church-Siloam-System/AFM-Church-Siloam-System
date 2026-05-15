@@ -10,10 +10,16 @@ function App() {
 
   const [newMember, setNewMember] = useState("");
   const [newEvent, setNewEvent] = useState("");
+  const [newFinance, setNewFinance] = useState("");
+  const [newAttendance, setNewAttendance] = useState("");
 
   const API = "https://afm-backend.onrender.com";
 
   useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = () => {
     fetch(`${API}/members`)
       .then((res) => res.json())
       .then((data) => setMembers(data));
@@ -29,14 +35,14 @@ function App() {
     fetch(`${API}/finances`)
       .then((res) => res.json())
       .then((data) => setFinances(data));
-  }, []);
+  };
 
-  // ADD MEMBER
+  // ================= MEMBERS =================
 
   const addMember = async () => {
     if (!newMember) return;
 
-    const response = await fetch(`${API}/members`, {
+    await fetch(`${API}/members`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -46,28 +52,24 @@ function App() {
       }),
     });
 
-    const data = await response.json();
-
-    setMembers([...members, data]);
     setNewMember("");
+    loadData();
   };
-
-  // DELETE MEMBER
 
   const deleteMember = async (id) => {
     await fetch(`${API}/members/${id}`, {
       method: "DELETE",
     });
 
-    setMembers(members.filter((member) => member.id !== id));
+    loadData();
   };
 
-  // ADD EVENT
+  // ================= EVENTS =================
 
   const addEvent = async () => {
     if (!newEvent) return;
 
-    const response = await fetch(`${API}/events`, {
+    await fetch(`${API}/events`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -77,20 +79,70 @@ function App() {
       }),
     });
 
-    const data = await response.json();
-
-    setEvents([...events, data]);
     setNewEvent("");
+    loadData();
   };
-
-  // DELETE EVENT
 
   const deleteEvent = async (id) => {
     await fetch(`${API}/events/${id}`, {
       method: "DELETE",
     });
 
-    setEvents(events.filter((event) => event.id !== id));
+    loadData();
+  };
+
+  // ================= FINANCES =================
+
+  const addFinance = async () => {
+    if (!newFinance) return;
+
+    await fetch(`${API}/finances`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        amount: newFinance,
+      }),
+    });
+
+    setNewFinance("");
+    loadData();
+  };
+
+  const deleteFinance = async (id) => {
+    await fetch(`${API}/finances/${id}`, {
+      method: "DELETE",
+    });
+
+    loadData();
+  };
+
+  // ================= ATTENDANCE =================
+
+  const addAttendance = async () => {
+    if (!newAttendance) return;
+
+    await fetch(`${API}/attendance`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        member_name: newAttendance,
+      }),
+    });
+
+    setNewAttendance("");
+    loadData();
+  };
+
+  const deleteAttendance = async (id) => {
+    await fetch(`${API}/attendance/${id}`, {
+      method: "DELETE",
+    });
+
+    loadData();
   };
 
   return (
@@ -100,7 +152,12 @@ function App() {
 
       <aside className="sidebar">
         <div className="logo-section">
-          <img src={logo} alt="Church Logo" className="logo" />
+          <img
+            src={logo}
+            alt="Church Logo"
+            className="logo"
+          />
+
           <h2>AFM Church</h2>
         </div>
 
@@ -173,7 +230,9 @@ function App() {
               type="text"
               placeholder="Enter member name"
               value={newMember}
-              onChange={(e) => setNewMember(e.target.value)}
+              onChange={(e) =>
+                setNewMember(e.target.value)
+              }
             />
 
             <button onClick={addMember}>
@@ -203,7 +262,9 @@ function App() {
                   <td>
                     <button
                       className="delete-btn"
-                      onClick={() => deleteMember(member.id)}
+                      onClick={() =>
+                        deleteMember(member.id)
+                      }
                     >
                       Delete
                     </button>
@@ -224,7 +285,9 @@ function App() {
               type="text"
               placeholder="Enter event name"
               value={newEvent}
-              onChange={(e) => setNewEvent(e.target.value)}
+              onChange={(e) =>
+                setNewEvent(e.target.value)
+              }
             />
 
             <button onClick={addEvent}>
@@ -254,7 +317,119 @@ function App() {
                   <td>
                     <button
                       className="delete-btn"
-                      onClick={() => deleteEvent(event.id)}
+                      onClick={() =>
+                        deleteEvent(event.id)
+                      }
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* ADD FINANCE */}
+
+        <div className="form-section">
+          <h2>Add Finance Record</h2>
+
+          <div className="member-form">
+            <input
+              type="number"
+              placeholder="Enter amount"
+              value={newFinance}
+              onChange={(e) =>
+                setNewFinance(e.target.value)
+              }
+            />
+
+            <button onClick={addFinance}>
+              Add Finance
+            </button>
+          </div>
+        </div>
+
+        {/* FINANCE TABLE */}
+
+        <div className="table-section">
+          <h2>Finance Records</h2>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Amount</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {finances.map((finance) => (
+                <tr key={finance.id}>
+                  <td>N$ {finance.amount}</td>
+
+                  <td>
+                    <button
+                      className="delete-btn"
+                      onClick={() =>
+                        deleteFinance(finance.id)
+                      }
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* ADD ATTENDANCE */}
+
+        <div className="form-section">
+          <h2>Mark Attendance</h2>
+
+          <div className="member-form">
+            <input
+              type="text"
+              placeholder="Enter member name"
+              value={newAttendance}
+              onChange={(e) =>
+                setNewAttendance(e.target.value)
+              }
+            />
+
+            <button onClick={addAttendance}>
+              Add Attendance
+            </button>
+          </div>
+        </div>
+
+        {/* ATTENDANCE TABLE */}
+
+        <div className="table-section">
+          <h2>Attendance Records</h2>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Member Name</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {attendance.map((record) => (
+                <tr key={record.id}>
+                  <td>{record.member_name}</td>
+
+                  <td>
+                    <button
+                      className="delete-btn"
+                      onClick={() =>
+                        deleteAttendance(record.id)
+                      }
                     >
                       Delete
                     </button>
