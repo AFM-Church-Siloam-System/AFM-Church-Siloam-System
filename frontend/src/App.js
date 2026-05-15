@@ -52,6 +52,7 @@ function App() {
       {/* Main Content */}
       <main className="main-content">
 
+        {/* Topbar */}
         <div className="topbar">
           <div>
             <h1>AFM Church Siloam System</h1>
@@ -60,6 +61,7 @@ function App() {
 
           <div className="admin-box">
             <div className="admin-avatar">A</div>
+
             <div>
               <strong>Administrator</strong>
               <p>Admin Access</p>
@@ -67,7 +69,9 @@ function App() {
           </div>
         </div>
 
+        {/* Dashboard Cards */}
         <div className="cards">
+
           <div className="card">
             <h3>Total Members</h3>
             <h2>{members.length}</h2>
@@ -87,40 +91,47 @@ function App() {
             <h3>Total Finances</h3>
             <h2>{finances.length}</h2>
           </div>
+
         </div>
-<div className="form-section">
-  <h2>Add Member</h2>
 
-  <form
-    onSubmit={(e) => {
-      e.preventDefault();
+        {/* Add Member Form */}
+        <div className="form-section">
+          <h2>Add Member</h2>
 
-      fetch(`${API}/members`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: e.target.name.value,
-        }),
-      })
-        .then((res) => res.json())
-        .then((newMember) => {
-          setMembers([...members, newMember]);
-          e.target.reset();
-        });
-    }}
-  >
-    <input
-      type="text"
-      name="name"
-      placeholder="Enter member name"
-      required
-    />
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
 
-    <button type="submit">Add Member</button>
-  </form>
-</div>
+              fetch(`${API}/members`, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  name: e.target.name.value,
+                }),
+              })
+                .then((res) => res.json())
+                .then((newMember) => {
+                  setMembers([...members, newMember]);
+                  e.target.reset();
+                });
+            }}
+          >
+            <input
+              type="text"
+              name="name"
+              placeholder="Enter member name"
+              required
+            />
+
+            <button type="submit">
+              Add Member
+            </button>
+          </form>
+        </div>
+
+        {/* Members Table */}
         <div className="table-section">
           <h2>Members</h2>
 
@@ -128,13 +139,35 @@ function App() {
             <thead>
               <tr>
                 <th>Name</th>
+                <th>Action</th>
               </tr>
             </thead>
 
             <tbody>
-              {members.map((member, index) => (
-                <tr key={index}>
+              {members.map((member) => (
+                <tr key={member.id}>
+
                   <td>{member.name}</td>
+
+                  <td>
+                    <button
+                      className="delete-btn"
+                      onClick={() => {
+                        fetch(`${API}/members/${member.id}`, {
+                          method: "DELETE",
+                        }).then(() => {
+                          setMembers(
+                            members.filter(
+                              (m) => m.id !== member.id
+                            )
+                          );
+                        });
+                      }}
+                    >
+                      Delete
+                    </button>
+                  </td>
+
                 </tr>
               ))}
             </tbody>
