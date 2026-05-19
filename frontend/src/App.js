@@ -31,6 +31,7 @@ import Members from "./pages/Members";
 import Attendance from "./pages/Attendance";
 import Finances from "./pages/Finances";
 import Settings from "./pages/Settings";
+import Users from "./pages/Users";
 
 import "./App.css";
 
@@ -66,6 +67,17 @@ function App() {
 
   const [password, setPassword] =
     useState("");
+
+  // ================= ROLE =================
+
+  const [role, setRole] =
+    useState(
+
+      localStorage.getItem(
+        "role"
+      ) || ""
+
+    );
 
   // ================= DARK MODE =================
 
@@ -108,6 +120,23 @@ function App() {
   const [amount, setAmount] =
     useState("");
 
+  // ================= USERS =================
+
+  const [users, setUsers] =
+    useState([]);
+
+  const [usernameInput,
+  setUsernameInput] =
+    useState("");
+
+  const [passwordInput,
+  setPasswordInput] =
+    useState("");
+
+  const [roleInput,
+  setRoleInput] =
+    useState("");
+
   // ================= LOGIN =================
 
   const handleLogin = async () => {
@@ -129,9 +158,18 @@ function App() {
 
         setLoggedIn(true);
 
+        setRole(
+          response.data.role
+        );
+
         localStorage.setItem(
           "loggedIn",
           "true"
+        );
+
+        localStorage.setItem(
+          "role",
+          response.data.role
         );
 
       } else {
@@ -160,13 +198,19 @@ function App() {
 
     setLoggedIn(false);
 
+    setRole("");
+
     localStorage.removeItem(
       "loggedIn"
     );
 
+    localStorage.removeItem(
+      "role"
+    );
+
   };
 
-  // ================= LOAD DATA =================
+  // ================= FETCH MEMBERS =================
 
   const fetchMembers = async () => {
 
@@ -187,6 +231,8 @@ function App() {
 
   };
 
+  // ================= FETCH ATTENDANCE =================
+
   const fetchAttendance = async () => {
 
     try {
@@ -205,6 +251,29 @@ function App() {
     }
 
   };
+
+  // ================= FETCH USERS =================
+
+  const fetchUsers = async () => {
+
+    try {
+
+      const response =
+        await axios.get(
+          `${API}/users`
+        );
+
+      setUsers(response.data);
+
+    } catch (error) {
+
+      console.log(error);
+
+    }
+
+  };
+
+  // ================= FETCH FINANCES =================
 
   const fetchFinances = async () => {
 
@@ -236,6 +305,8 @@ function App() {
       fetchAttendance();
 
       fetchFinances();
+
+      fetchUsers();
 
       // AUTO LOGOUT AFTER 30 MINUTES
 
@@ -373,6 +444,78 @@ function App() {
       setAmount("");
 
       fetchFinances();
+
+    } catch (error) {
+
+      console.log(error);
+
+    }
+
+  };
+
+  // ================= ADD USER =================
+
+  const addUser = async () => {
+
+    if (
+      !usernameInput ||
+      !passwordInput ||
+      !roleInput
+    ) {
+
+      alert(
+        "Fill all fields"
+      );
+
+      return;
+
+    }
+
+    try {
+
+      await axios.post(
+        `${API}/add_user`,
+        {
+
+          username:
+            usernameInput,
+
+          password:
+            passwordInput,
+
+          role:
+            roleInput
+
+        }
+      );
+
+      setUsernameInput("");
+      setPasswordInput("");
+      setRoleInput("");
+
+      fetchUsers();
+
+    } catch (error) {
+
+      console.log(error);
+
+    }
+
+  };
+
+  // ================= DELETE USER =================
+
+  const deleteUser = async (
+    id
+  ) => {
+
+    try {
+
+      await axios.delete(
+        `${API}/delete_user/${id}`
+      );
+
+      fetchUsers();
 
     } catch (error) {
 
@@ -539,33 +682,63 @@ function App() {
           <ul>
 
             <li>
+
               <NavLink to="/">
                 🏠 Dashboard
               </NavLink>
+
             </li>
 
             <li>
+
               <NavLink to="/members">
                 👥 Members
               </NavLink>
+
             </li>
 
             <li>
+
               <NavLink to="/attendance">
                 📅 Attendance
               </NavLink>
+
             </li>
 
-            <li>
-              <NavLink to="/finances">
-                💰 Finances
-              </NavLink>
-            </li>
+            {
+              role !== "Secretary" && (
+
+                <li>
+
+                  <NavLink to="/finances">
+                    💰 Finances
+                  </NavLink>
+
+                </li>
+
+              )
+            }
+
+            {
+              role === "Admin" && (
+
+                <li>
+
+                  <NavLink to="/users">
+                    👤 Users
+                  </NavLink>
+
+                </li>
+
+              )
+            }
 
             <li>
+
               <NavLink to="/settings">
                 ⚙️ Settings
               </NavLink>
+
             </li>
 
           </ul>
@@ -591,7 +764,7 @@ function App() {
               </h1>
 
               <p>
-                Church Management Dashboard
+                {role} Dashboard
               </p>
 
             </div>
@@ -644,20 +817,73 @@ function App() {
               }
             />
 
-            <Route
-              path="/finances"
-              element={
-                <Finances
-                  description={description}
-                  setDescription={setDescription}
-                  amount={amount}
-                  setAmount={setAmount}
-                  addFinance={addFinance}
-                  finances={finances}
-                  totalFinance={totalFinance}
+            {
+              role !== "Secretary" && (
+
+                <Route
+                  path="/finances"
+                  element={
+                    <Finances
+                      description={description}
+                      setDescription={setDescription}
+                      amount={amount}
+                      setAmount={setAmount}
+                      addFinance={addFinance}
+                      finances={finances}
+                      totalFinance={totalFinance}
+                    />
+                  }
                 />
-              }
-            />
+
+              )
+            }
+
+            {
+              role === "Admin" && (
+
+                <Route
+                  path="/users"
+                  element={
+                    <Users
+
+                      users={users}
+
+                      usernameInput={
+                        usernameInput
+                      }
+
+                      setUsernameInput={
+                        setUsernameInput
+                      }
+
+                      passwordInput={
+                        passwordInput
+                      }
+
+                      setPasswordInput={
+                        setPasswordInput
+                      }
+
+                      roleInput={
+                        roleInput
+                      }
+
+                      setRoleInput={
+                        setRoleInput
+                      }
+
+                      addUser={addUser}
+
+                      deleteUser={
+                        deleteUser
+                      }
+
+                    />
+                  }
+                />
+
+              )
+            }
 
             <Route
               path="/settings"
