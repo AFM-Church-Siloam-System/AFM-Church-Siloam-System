@@ -45,6 +45,11 @@ ChartJS.register(
 
 function App() {
 
+  // ================= BACKEND URL =================
+
+  const API =
+    "https://afm-backend.onrender.com";
+
   // ================= LOGIN =================
 
   const [loggedIn, setLoggedIn] =
@@ -105,7 +110,7 @@ function App() {
 
       const response =
         await axios.post(
-          "http://127.0.0.1:5000/login",
+          `${API}/login`,
           {
             username,
             password
@@ -152,7 +157,7 @@ function App() {
 
       const response =
         await axios.get(
-          "http://127.0.0.1:5000/members"
+          `${API}/members`
         );
 
       setMembers(response.data);
@@ -171,7 +176,7 @@ function App() {
 
       const response =
         await axios.get(
-          "http://127.0.0.1:5000/attendance"
+          `${API}/attendance`
         );
 
       setAttendance(response.data);
@@ -190,7 +195,7 @@ function App() {
 
       const response =
         await axios.get(
-          "http://127.0.0.1:5000/finances"
+          `${API}/finances`
         );
 
       setFinances(response.data);
@@ -236,7 +241,7 @@ function App() {
     try {
 
       await axios.post(
-        "http://127.0.0.1:5000/add_member",
+        `${API}/add_member`,
         {
           name,
           phone,
@@ -267,7 +272,7 @@ function App() {
     try {
 
       await axios.delete(
-        `http://127.0.0.1:5000/delete_member/${id}`
+        `${API}/delete_member/${id}`
       );
 
       fetchMembers();
@@ -292,7 +297,7 @@ function App() {
     try {
 
       await axios.post(
-        "http://127.0.0.1:5000/add_attendance",
+        `${API}/add_attendance`,
         {
           member_name: memberName,
           date: today
@@ -324,7 +329,7 @@ function App() {
     try {
 
       await axios.post(
-        "http://127.0.0.1:5000/add_finance",
+        `${API}/add_finance`,
         {
           description,
           amount
@@ -501,43 +506,33 @@ function App() {
           <ul>
 
             <li>
-
               <NavLink to="/">
                 🏠 Dashboard
               </NavLink>
-
             </li>
 
             <li>
-
               <NavLink to="/members">
                 👥 Members
               </NavLink>
-
             </li>
 
             <li>
-
               <NavLink to="/attendance">
                 📅 Attendance
               </NavLink>
-
             </li>
 
             <li>
-
               <NavLink to="/finances">
                 💰 Finances
               </NavLink>
-
             </li>
 
             <li>
-
               <NavLink to="/settings">
                 ⚙️ Settings
               </NavLink>
-
             </li>
 
           </ul>
@@ -547,8 +542,6 @@ function App() {
         {/* MAIN CONTENT */}
 
         <div className="main-content">
-
-          {/* HEADER */}
 
           <div className="header">
 
@@ -571,8 +564,6 @@ function App() {
             </div>
 
           </div>
-
-          {/* ROUTES */}
 
           <Routes>
 
