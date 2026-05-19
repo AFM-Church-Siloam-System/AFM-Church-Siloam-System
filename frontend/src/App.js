@@ -53,7 +53,13 @@ function App() {
   // ================= LOGIN =================
 
   const [loggedIn, setLoggedIn] =
-    useState(false);
+    useState(
+
+      localStorage.getItem(
+        "loggedIn"
+      ) === "true"
+
+    );
 
   const [username, setUsername] =
     useState("");
@@ -123,6 +129,11 @@ function App() {
 
         setLoggedIn(true);
 
+        localStorage.setItem(
+          "loggedIn",
+          "true"
+        );
+
       } else {
 
         alert(
@@ -143,9 +154,15 @@ function App() {
 
   };
 
+  // ================= LOGOUT =================
+
   const logout = () => {
 
     setLoggedIn(false);
+
+    localStorage.removeItem(
+      "loggedIn"
+    );
 
   };
 
@@ -208,6 +225,8 @@ function App() {
 
   };
 
+  // ================= AUTO LOGOUT =================
+
   useEffect(() => {
 
     if (loggedIn) {
@@ -217,6 +236,20 @@ function App() {
       fetchAttendance();
 
       fetchFinances();
+
+      // AUTO LOGOUT AFTER 30 MINUTES
+
+      const timer = setTimeout(() => {
+
+        alert(
+          "Session expired. Please login again."
+        );
+
+        logout();
+
+      }, 1800000);
+
+      return () => clearTimeout(timer);
 
     }
 
@@ -369,7 +402,7 @@ function App() {
         )
     );
 
-  // ================= PDF =================
+  // ================= PDF EXPORT =================
 
   const exportMembersPDF = () => {
 

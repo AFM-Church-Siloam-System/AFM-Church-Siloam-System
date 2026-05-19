@@ -2,6 +2,8 @@ import React from "react";
 
 import { Bar } from "react-chartjs-2";
 
+import CountUp from "react-countup";
+
 function Dashboard({
   members,
   attendance,
@@ -19,7 +21,14 @@ function Dashboard({
 
           <h3>Total Members</h3>
 
-          <p>{members.length}</p>
+          <p>
+
+            <CountUp
+              end={members.length}
+              duration={2}
+            />
+
+          </p>
 
         </div>
 
@@ -27,7 +36,14 @@ function Dashboard({
 
           <h3>Total Attendance</h3>
 
-          <p>{attendance.length}</p>
+          <p>
+
+            <CountUp
+              end={attendance.length}
+              duration={2}
+            />
+
+          </p>
 
         </div>
 
@@ -35,7 +51,16 @@ function Dashboard({
 
           <h3>Total Finances</h3>
 
-          <p>N${totalFinance}</p>
+          <p>
+
+            N$
+
+            <CountUp
+              end={totalFinance}
+              duration={2}
+            />
+
+          </p>
 
         </div>
 
