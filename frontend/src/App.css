@@ -240,3 +240,59 @@ button {
 .dark table td {
   border-bottom: 1px solid #333;
 }
+@media screen and (max-width: 768px) {
+
+  .app {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    padding: 15px;
+  }
+
+  .sidebar ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .sidebar li {
+    margin-bottom: 0;
+    flex: 1;
+    text-align: center;
+  }
+
+  .main-content {
+    padding: 15px;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .church-logo {
+    width: 60px;
+    margin-bottom: 10px;
+  }
+
+  .cards {
+    grid-template-columns: 1fr;
+  }
+
+  table {
+    display: block;
+    overflow-x: auto;
+  }
+
+  .member-form input,
+  .search-section input {
+    width: 100%;
+  }
+
+  button {
+    width: 100%;
+  }
+
+}
