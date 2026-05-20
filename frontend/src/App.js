@@ -1,30 +1,24 @@
 import React, {
-  useEffect,
-  useState
+  useState,
+  useEffect
 } from "react";
+
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  NavLink,
+  Navigate
+} from "react-router-dom";
 
 import axios from "axios";
 
-import jsPDF from "jspdf";
-
-import autoTable from "jspdf-autotable";
-
 import {
-  BrowserRouter,
-  Routes,
-  Route,
-  NavLink
-} from "react-router-dom";
+  ToastContainer,
+  toast
+} from "react-toastify";
 
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend
-} from "chart.js";
+import "react-toastify/dist/ReactToastify.css";
 
 import Dashboard from "./pages/Dashboard";
 import Members from "./pages/Members";
@@ -32,26 +26,22 @@ import Attendance from "./pages/Attendance";
 import Finances from "./pages/Finances";
 import Settings from "./pages/Settings";
 import Users from "./pages/Users";
+import AuditLogs from "./pages/AuditLogs";
+import Backup from "./pages/Backup";
+import QRScanner from "./pages/QRScanner";
+
+import Login from "./Login";
 
 import "./App.css";
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend
-);
-
 function App() {
 
-  // ================= BACKEND URL =================
+  // ================= API =================
 
   const API =
     "https://afm-backend.onrender.com";
 
-  // ================= LOGIN =================
+  // ================= AUTH =================
 
   const [loggedIn, setLoggedIn] =
     useState(
@@ -62,14 +52,6 @@ function App() {
 
     );
 
-  const [username, setUsername] =
-    useState("");
-
-  const [password, setPassword] =
-    useState("");
-
-  // ================= ROLE =================
-
   const [role, setRole] =
     useState(
 
@@ -79,10 +61,29 @@ function App() {
 
     );
 
-  // ================= DARK MODE =================
+  const token =
+    localStorage.getItem(
+      "token"
+    );
 
-  const [darkMode, setDarkMode] =
-    useState(false);
+  const authHeaders = {
+
+    headers: {
+
+      Authorization:
+        `Bearer ${token}`
+
+    }
+
+  };
+
+  // ================= LOGIN =================
+
+  const [username, setUsername] =
+    useState("");
+
+  const [password, setPassword] =
+    useState("");
 
   // ================= MEMBERS =================
 
@@ -114,30 +115,29 @@ function App() {
   const [finances, setFinances] =
     useState([]);
 
-  const [description, setDescription] =
+  const [financeDescription,
+    setFinanceDescription] =
     useState("");
 
-  const [amount, setAmount] =
+  const [financeAmount,
+    setFinanceAmount] =
     useState("");
 
   // ================= USERS =================
 
-  const [users, setUsers] =
-    useState([]);
-
-  const [usernameInput,
-  setUsernameInput] =
+  const [newUsername,
+    setNewUsername] =
     useState("");
 
-  const [passwordInput,
-  setPasswordInput] =
+  const [newPassword,
+    setNewPassword] =
     useState("");
 
-  const [roleInput,
-  setRoleInput] =
+  const [newRole,
+    setNewRole] =
     useState("");
 
-  // ================= LOGIN =================
+  // ================= LOGIN FUNCTION =================
 
   const handleLogin = async () => {
 
@@ -145,22 +145,19 @@ function App() {
 
       const response =
         await axios.post(
+
           `${API}/login`,
+
           {
             username,
             password
           }
+
         );
 
       if (
         response.data.success
       ) {
-
-        setLoggedIn(true);
-
-        setRole(
-          response.data.role
-        );
 
         localStorage.setItem(
           "loggedIn",
@@ -172,9 +169,24 @@ function App() {
           response.data.role
         );
 
+        localStorage.setItem(
+          "token",
+          response.data.token
+        );
+
+        setLoggedIn(true);
+
+        setRole(
+          response.data.role
+        );
+
+        toast.success(
+          "Login successful"
+        );
+
       } else {
 
-        alert(
+        toast.error(
           response.data.message
         );
 
@@ -184,8 +196,8 @@ function App() {
 
       console.log(error);
 
-      alert(
-        "Backend connection failed"
+      toast.error(
+        "Login failed"
       );
 
     }
@@ -196,16 +208,14 @@ function App() {
 
   const logout = () => {
 
+    localStorage.clear();
+
     setLoggedIn(false);
 
     setRole("");
 
-    localStorage.removeItem(
-      "loggedIn"
-    );
-
-    localStorage.removeItem(
-      "role"
+    toast.success(
+      "Logged out successfully"
     );
 
   };
@@ -218,7 +228,11 @@ function App() {
 
       const response =
         await axios.get(
-          `${API}/members`
+
+          `${API}/members`,
+
+          authHeaders
+
         );
 
       setMembers(response.data);
@@ -239,31 +253,14 @@ function App() {
 
       const response =
         await axios.get(
-          `${API}/attendance`
+
+          `${API}/attendance`,
+
+          authHeaders
+
         );
 
       setAttendance(response.data);
-
-    } catch (error) {
-
-      console.log(error);
-
-    }
-
-  };
-
-  // ================= FETCH USERS =================
-
-  const fetchUsers = async () => {
-
-    try {
-
-      const response =
-        await axios.get(
-          `${API}/users`
-        );
-
-      setUsers(response.data);
 
     } catch (error) {
 
@@ -281,7 +278,11 @@ function App() {
 
       const response =
         await axios.get(
-          `${API}/finances`
+
+          `${API}/finances`,
+
+          authHeaders
+
         );
 
       setFinances(response.data);
@@ -294,33 +295,15 @@ function App() {
 
   };
 
-  // ================= AUTO LOGOUT =================
+  // ================= LOAD DATA =================
 
   useEffect(() => {
 
     if (loggedIn) {
 
       fetchMembers();
-
       fetchAttendance();
-
       fetchFinances();
-
-      fetchUsers();
-
-      // AUTO LOGOUT AFTER 30 MINUTES
-
-      const timer = setTimeout(() => {
-
-        alert(
-          "Session expired. Please login again."
-        );
-
-        logout();
-
-      }, 1800000);
-
-      return () => clearTimeout(timer);
 
     }
 
@@ -330,40 +313,41 @@ function App() {
 
   const addMember = async () => {
 
-    if (
-      !name ||
-      !phone ||
-      !department
-    ) {
-
-      alert("Fill all fields");
-
-      return;
-
-    }
-
     try {
 
       await axios.post(
+
         `${API}/add_member`,
+
         {
           name,
           phone,
           department,
           photo
-        }
+        },
+
+        authHeaders
+
       );
+
+      fetchMembers();
 
       setName("");
       setPhone("");
       setDepartment("");
       setPhoto("");
 
-      fetchMembers();
+      toast.success(
+        "Member added successfully"
+      );
 
     } catch (error) {
 
       console.log(error);
+
+      toast.error(
+        "Failed to add member"
+      );
 
     }
 
@@ -376,20 +360,32 @@ function App() {
     try {
 
       await axios.delete(
-        `${API}/delete_member/${id}`
+
+        `${API}/delete_member/${id}`,
+
+        authHeaders
+
       );
 
       fetchMembers();
+
+      toast.success(
+        "Member deleted"
+      );
 
     } catch (error) {
 
       console.log(error);
 
+      toast.error(
+        "Delete failed"
+      );
+
     }
 
   };
 
-  // ================= ATTENDANCE =================
+  // ================= MARK ATTENDANCE =================
 
   const markAttendance = async (
     memberName
@@ -401,257 +397,214 @@ function App() {
     try {
 
       await axios.post(
+
         `${API}/add_attendance`,
+
         {
-          member_name: memberName,
+          member_name:
+            memberName,
+
           date: today
-        }
+        },
+
+        authHeaders
+
       );
 
       fetchAttendance();
 
+      toast.success(
+        `${memberName} attendance marked`
+      );
+
     } catch (error) {
 
       console.log(error);
+
+      toast.error(
+        "Attendance failed"
+      );
 
     }
 
   };
 
-  // ================= FINANCES =================
+  // ================= ADD FINANCE =================
 
   const addFinance = async () => {
 
-    if (!description || !amount) {
-
-      alert("Fill all fields");
-
-      return;
-
-    }
-
     try {
 
       await axios.post(
-        `${API}/add_finance`,
-        {
-          description,
-          amount
-        }
-      );
 
-      setDescription("");
-      setAmount("");
+        `${API}/add_finance`,
+
+        {
+          description:
+            financeDescription,
+
+          amount:
+            financeAmount
+        },
+
+        authHeaders
+
+      );
 
       fetchFinances();
 
+      setFinanceDescription("");
+      setFinanceAmount("");
+
+      toast.success(
+        "Finance added"
+      );
+
     } catch (error) {
 
       console.log(error);
+
+      toast.error(
+        "Finance failed"
+      );
 
     }
 
   };
 
-  // ================= ADD USER =================
+  // ================= CREATE USER =================
 
-  const addUser = async () => {
-
-    if (
-      !usernameInput ||
-      !passwordInput ||
-      !roleInput
-    ) {
-
-      alert(
-        "Fill all fields"
-      );
-
-      return;
-
-    }
+  const createUser = async () => {
 
     try {
 
-      await axios.post(
-        `${API}/add_user`,
-        {
+      const response =
+        await axios.post(
 
-          username:
-            usernameInput,
+          `${API}/create_user`,
 
-          password:
-            passwordInput,
+          {
+            username:
+              newUsername,
 
-          role:
-            roleInput
+            password:
+              newPassword,
 
-        }
+            role:
+              newRole
+          },
+
+          authHeaders
+
+        );
+
+      toast.success(
+        response.data.message
       );
 
-      setUsernameInput("");
-      setPasswordInput("");
-      setRoleInput("");
-
-      fetchUsers();
+      setNewUsername("");
+      setNewPassword("");
+      setNewRole("");
 
     } catch (error) {
 
       console.log(error);
 
-    }
-
-  };
-
-  // ================= DELETE USER =================
-
-  const deleteUser = async (
-    id
-  ) => {
-
-    try {
-
-      await axios.delete(
-        `${API}/delete_user/${id}`
+      toast.error(
+        "User creation failed"
       );
 
-      fetchUsers();
-
-    } catch (error) {
-
-      console.log(error);
-
     }
 
   };
 
-  // ================= TOTAL FINANCE =================
-
-  const totalFinance =
-    finances.reduce(
-      (total, item) =>
-        total + Number(item.amount),
-      0
-    );
-
-  // ================= SEARCH =================
+  // ================= FILTER MEMBERS =================
 
   const filteredMembers =
     members.filter((member) =>
+
       member.name
         .toLowerCase()
         .includes(
           search.toLowerCase()
         )
+
     );
 
-  // ================= PDF EXPORT =================
+  // ================= TOTAL FINANCE =================
 
-  const exportMembersPDF = () => {
+  const totalFinance =
+    finances.reduce(
 
-    const doc = new jsPDF();
+      (total, finance) =>
 
-    doc.text(
-      "AFM Church Members",
-      14,
-      20
+        total +
+        Number(finance.amount),
+
+      0
+
     );
 
-    autoTable(doc, {
-      startY: 30,
-      head: [[
-        "Name",
-        "Phone",
-        "Department"
-      ]],
-      body: members.map((member) => [
-        member.name,
-        member.phone,
-        member.department
-      ])
-    });
-
-    doc.save("members.pdf");
-
-  };
-
-  // ================= CHART =================
+  // ================= CHART DATA =================
 
   const chartData = {
 
     labels: [
+
       "Members",
       "Attendance",
       "Finances"
+
     ],
 
     datasets: [
 
       {
-        label: "Church Analytics",
+
+        label:
+          "Church Analytics",
 
         data: [
+
           members.length,
+
           attendance.length,
+
           totalFinance
+
         ],
 
         backgroundColor: [
+
           "#0b57d0",
-          "#28a745",
-          "#ffc107"
+          "#34a853",
+          "#fbbc05"
+
         ]
+
       }
 
     ]
 
   };
 
-  // ================= LOGIN PAGE =================
+  // ================= LOGIN SCREEN =================
 
   if (!loggedIn) {
 
     return (
 
-      <div className="login-container">
+      <Login
 
-        <div className="login-box">
+        username={username}
+        setUsername={setUsername}
 
-          <h2>
-            AFM Church Login
-          </h2>
+        password={password}
+        setPassword={setPassword}
 
-          <input
-            type="text"
-            placeholder="Username"
-            value={username}
-            onChange={(e) =>
-              setUsername(
-                e.target.value
-              )
-            }
-          />
+        handleLogin={handleLogin}
 
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) =>
-              setPassword(
-                e.target.value
-              )
-            }
-          />
-
-          <button
-            onClick={handleLogin}
-          >
-            Login
-          </button>
-
-        </div>
-
-      </div>
+      />
 
     );
 
@@ -661,15 +614,11 @@ function App() {
 
   return (
 
-    <BrowserRouter>
+    <Router>
 
-      <div
-        className={
-          darkMode
-            ? "app dark"
-            : "app"
-        }
-      >
+      <ToastContainer />
+
+      <div className="app">
 
         {/* SIDEBAR */}
 
@@ -705,43 +654,65 @@ function App() {
 
             </li>
 
-            {
-              role !== "Secretary" && (
-
-                <li>
-
-                  <NavLink to="/finances">
-                    💰 Finances
-                  </NavLink>
-
-                </li>
-
-              )
-            }
-
-            {
-              role === "Admin" && (
-
-                <li>
-
-                  <NavLink to="/users">
-                    👤 Users
-                  </NavLink>
-
-                </li>
-
-              )
-            }
-
             <li>
 
-              <NavLink to="/settings">
-                ⚙️ Settings
+              <NavLink to="/qrscanner">
+                📷 QR Scanner
               </NavLink>
 
             </li>
 
+            <li>
+
+              <NavLink to="/finances">
+                💰 Finances
+              </NavLink>
+
+            </li>
+
+            {role === "Admin" && (
+
+              <li>
+
+                <NavLink to="/auditlogs">
+                  📋 Audit Logs
+                </NavLink>
+
+              </li>
+
+            )}
+
+            {role === "Admin" && (
+
+              <li>
+
+                <NavLink to="/backup">
+                  💾 Backup
+                </NavLink>
+
+              </li>
+
+            )}
+
+            {role === "Admin" && (
+
+              <li>
+
+                <NavLink to="/settings">
+                  ⚙️ Settings
+                </NavLink>
+
+              </li>
+
+            )}
+
           </ul>
+
+          <button
+            onClick={logout}
+          >
+            Logout
+          </button>
 
         </div>
 
@@ -749,150 +720,253 @@ function App() {
 
         <div className="main-content">
 
-          <div className="header">
-
-            <img
-              src="/logo.png"
-              alt="Church Logo"
-              className="church-logo"
-            />
-
-            <div>
-
-              <h1>
-                AFM Church Siloam
-              </h1>
-
-              <p>
-                {role} Dashboard
-              </p>
-
-            </div>
-
-          </div>
-
           <Routes>
 
             <Route
+
               path="/"
+
               element={
+
                 <Dashboard
+
                   members={members}
-                  attendance={attendance}
-                  totalFinance={totalFinance}
-                  chartData={chartData}
+
+                  attendance={
+                    attendance
+                  }
+
+                  totalFinance={
+                    totalFinance
+                  }
+
+                  chartData={
+                    chartData
+                  }
+
                 />
+
               }
+
             />
 
             <Route
+
               path="/members"
+
               element={
+
                 <Members
+
                   search={search}
                   setSearch={setSearch}
-                  exportMembersPDF={exportMembersPDF}
+
                   name={name}
                   setName={setName}
+
                   phone={phone}
                   setPhone={setPhone}
+
                   department={department}
-                  setDepartment={setDepartment}
+                  setDepartment={
+                    setDepartment
+                  }
+
                   photo={photo}
                   setPhoto={setPhoto}
+
                   addMember={addMember}
-                  filteredMembers={filteredMembers}
-                  markAttendance={markAttendance}
-                  deleteMember={deleteMember}
+
+                  filteredMembers={
+                    filteredMembers
+                  }
+
+                  markAttendance={
+                    markAttendance
+                  }
+
+                  deleteMember={
+                    deleteMember
+                  }
+
                 />
+
               }
+
             />
 
             <Route
+
               path="/attendance"
+
               element={
+
                 <Attendance
-                  attendance={attendance}
+
+                  attendance={
+                    attendance
+                  }
+
                 />
+
               }
+
             />
 
-            {
-              role !== "Secretary" && (
+            <Route
 
-                <Route
-                  path="/finances"
-                  element={
-                    <Finances
-                      description={description}
-                      setDescription={setDescription}
-                      amount={amount}
-                      setAmount={setAmount}
-                      addFinance={addFinance}
-                      finances={finances}
-                      totalFinance={totalFinance}
-                    />
-                  }
-                />
+              path="/qrscanner"
 
-              )
-            }
+              element={
+                <QRScanner />
+              }
 
-            {
-              role === "Admin" && (
-
-                <Route
-                  path="/users"
-                  element={
-                    <Users
-
-                      users={users}
-
-                      usernameInput={
-                        usernameInput
-                      }
-
-                      setUsernameInput={
-                        setUsernameInput
-                      }
-
-                      passwordInput={
-                        passwordInput
-                      }
-
-                      setPasswordInput={
-                        setPasswordInput
-                      }
-
-                      roleInput={
-                        roleInput
-                      }
-
-                      setRoleInput={
-                        setRoleInput
-                      }
-
-                      addUser={addUser}
-
-                      deleteUser={
-                        deleteUser
-                      }
-
-                    />
-                  }
-                />
-
-              )
-            }
+            />
 
             <Route
-              path="/settings"
+
+              path="/finances"
+
               element={
-                <Settings
-                  darkMode={darkMode}
-                  setDarkMode={setDarkMode}
-                  logout={logout}
+
+                <Finances
+
+                  finances={finances}
+
+                  financeDescription={
+                    financeDescription
+                  }
+
+                  setFinanceDescription={
+                    setFinanceDescription
+                  }
+
+                  financeAmount={
+                    financeAmount
+                  }
+
+                  setFinanceAmount={
+                    setFinanceAmount
+                  }
+
+                  addFinance={
+                    addFinance
+                  }
+
                 />
+
+              }
+
+            />
+
+            <Route
+
+              path="/auditlogs"
+
+              element={
+
+                role === "Admin"
+
+                  ? (
+                    <AuditLogs />
+                  )
+
+                  : (
+                    <h2>
+                      Access Denied
+                    </h2>
+                  )
+
+              }
+
+            />
+
+            <Route
+
+              path="/backup"
+
+              element={
+
+                role === "Admin"
+
+                  ? (
+                    <Backup />
+                  )
+
+                  : (
+                    <h2>
+                      Access Denied
+                    </h2>
+                  )
+
+              }
+
+            />
+
+            <Route
+
+              path="/settings"
+
+              element={
+
+                role === "Admin"
+
+                  ? (
+
+                    <Settings>
+
+                      <Users
+
+                        newUsername={
+                          newUsername
+                        }
+
+                        setNewUsername={
+                          setNewUsername
+                        }
+
+                        newPassword={
+                          newPassword
+                        }
+
+                        setNewPassword={
+                          setNewPassword
+                        }
+
+                        newRole={
+                          newRole
+                        }
+
+                        setNewRole={
+                          setNewRole
+                        }
+
+                        createUser={
+                          createUser
+                        }
+
+                      />
+
+                    </Settings>
+
+                  )
+
+                  : (
+
+                    <h2>
+                      Access Denied
+                    </h2>
+
+                  )
+
+              }
+
+            />
+
+            <Route
+              path="*"
+              element={
+                <Navigate to="/" />
               }
             />
 
@@ -902,7 +976,7 @@ function App() {
 
       </div>
 
-    </BrowserRouter>
+    </Router>
 
   );
 

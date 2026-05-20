@@ -1,46 +1,129 @@
 import React from "react";
 
+import axios from "axios";
+
+import { QRCodeCanvas }
+from "qrcode.react";
+
 function Members({
+
   search,
   setSearch,
+
   exportMembersPDF,
+
   name,
   setName,
+
   phone,
   setPhone,
+
   department,
   setDepartment,
+
   photo,
   setPhoto,
+
   addMember,
+
   filteredMembers,
+
   markAttendance,
+
   deleteMember
+
 }) {
 
-  // ================= IMAGE UPLOAD =================
+  // ================= PHOTO FILE =================
 
-  const handleImageUpload = (
-    e
-  ) => {
+  const [photoFile, setPhotoFile] =
+    React.useState(null);
 
-    const file =
-      e.target.files[0];
+  // ================= API =================
 
-    if (!file) return;
+  const API =
+    "https://afm-backend.onrender.com";
 
-    const reader =
-      new FileReader();
+  const token =
+    localStorage.getItem(
+      "token"
+    );
 
-    reader.onloadend = () => {
+  const authHeaders = {
 
-      setPhoto(
-        reader.result
+    headers: {
+
+      Authorization:
+        `Bearer ${token}`
+
+    }
+
+  };
+
+  // ================= UPLOAD PHOTO =================
+
+  const uploadPhoto = async () => {
+
+    if (!photoFile) {
+
+      alert(
+        "Select a photo"
       );
 
-    };
+      return;
 
-    reader.readAsDataURL(file);
+    }
+
+    const formData =
+      new FormData();
+
+    formData.append(
+      "photo",
+      photoFile
+    );
+
+    try {
+
+      const response =
+        await axios.post(
+
+          `${API}/upload_photo`,
+
+          formData,
+
+          {
+
+            headers: {
+
+              Authorization:
+                `Bearer ${token}`,
+
+              "Content-Type":
+                "multipart/form-data"
+
+            }
+
+          }
+
+        );
+
+      setPhoto(
+        response.data.photo_url
+      );
+
+      alert(
+        "Photo uploaded successfully"
+      );
+
+    } catch (error) {
+
+      console.log(error);
+
+      alert(
+        "Upload failed"
+      );
+
+    }
 
   };
 
@@ -48,177 +131,264 @@ function Members({
 
     <div>
 
-      {/* SEARCH */}
+      {/* ================= TOP SECTION ================= */}
 
-      <div className="search-section">
+      <div className="top-bar">
 
         <input
+
           type="text"
-          placeholder="Search members..."
+
+          placeholder="Search member"
+
           value={search}
+
           onChange={(e) =>
+
             setSearch(
               e.target.value
             )
+
           }
+
         />
 
         <button
           onClick={exportMembersPDF}
-          style={{
-            background: "green"
-          }}
         >
           Export PDF
         </button>
 
       </div>
 
-      {/* MEMBER FORM */}
+      {/* ================= ADD MEMBER ================= */}
 
-      <div className="member-form">
+      <div className="form-container">
 
         <input
+
           type="text"
-          placeholder="Full Name"
+
+          placeholder="Name"
+
           value={name}
+
           onChange={(e) =>
+
             setName(
               e.target.value
             )
+
           }
+
         />
 
         <input
+
           type="text"
+
           placeholder="Phone"
+
           value={phone}
+
           onChange={(e) =>
+
             setPhone(
               e.target.value
             )
+
           }
+
         />
 
         <input
+
           type="text"
+
           placeholder="Department"
+
           value={department}
+
           onChange={(e) =>
+
             setDepartment(
               e.target.value
             )
+
           }
+
         />
+
+        {/* ================= PHOTO UPLOAD ================= */}
 
         <input
+
           type="file"
-          accept="image/*"
-          onChange={
-            handleImageUpload
+
+          onChange={(e) =>
+
+            setPhotoFile(
+              e.target.files[0]
+            )
+
           }
+
         />
 
-        <button onClick={addMember}>
+        <br />
+        <br />
+
+        <button
+          onClick={uploadPhoto}
+        >
+          Upload Photo
+        </button>
+
+        <br />
+        <br />
+
+        <button
+          onClick={addMember}
+        >
           Add Member
         </button>
 
       </div>
 
-      {/* MEMBERS TABLE */}
+      {/* ================= MEMBER LIST ================= */}
 
-      <table>
+      <div className="members-grid">
 
-        <thead>
+        {filteredMembers.map((member) => (
 
-          <tr>
+          <div
+            className="member-card"
+            key={member.id}
+          >
 
-            <th>Photo</th>
-            <th>Name</th>
-            <th>Phone</th>
-            <th>Department</th>
-            <th>Attendance</th>
-            <th>Delete</th>
+            {/* PROFILE PHOTO */}
 
-          </tr>
+            {member.photo && (
 
-        </thead>
+              <img
 
-        <tbody>
+                src={
+                  `${API}/${member.photo}`
+                }
 
-          {filteredMembers.map(
-            (member) => (
+                alt="Member"
 
-              <tr
-                key={member.id}
-              >
+                className="member-photo"
 
-                <td>
+              />
 
-                  <img
-                    src={
-                      member.photo ||
-                      "https://via.placeholder.com/50"
-                    }
-                    alt="Member"
-                    style={{
-                      width: "50px",
-                      height: "50px",
-                      borderRadius: "50%",
-                      objectFit: "cover"
-                    }}
-                  />
+            )}
 
-                </td>
+            <h3>
+              {member.name}
+            </h3>
 
-                <td>
-                  {member.name}
-                </td>
+            <p>
+              {member.phone}
+            </p>
 
-                <td>
-                  {member.phone}
-                </td>
+            <p>
+              {member.department}
+            </p>
 
-                <td>
-                  {member.department}
-                </td>
+            {/* ================= ACTION BUTTONS ================= */}
 
-                <td>
+            <button
 
-                  <button
-                    onClick={() =>
-                      markAttendance(
-                        member.name
-                      )
-                    }
-                  >
-                    Present
-                  </button>
+              onClick={() =>
 
-                </td>
+                markAttendance(
+                  member.name
+                )
 
-                <td>
+              }
 
-                  <button
-                    onClick={() =>
-                      deleteMember(
-                        member.id
-                      )
-                    }
-                  >
-                    Delete
-                  </button>
+            >
+              Mark Attendance
+            </button>
 
-                </td>
+            <button
 
-              </tr>
+              onClick={() =>
 
-            )
-          )}
+                deleteMember(
+                  member.id
+                )
 
-        </tbody>
+              }
 
-      </table>
+            >
+              Delete
+            </button>
+
+            {/* ================= MEMBER ID CARD ================= */}
+
+            <div className="member-id-card">
+
+              <h3>
+                AFM Church Siloam
+              </h3>
+
+              {member.photo && (
+
+                <img
+
+                  src={
+                    `${API}/${member.photo}`
+                  }
+
+                  alt="Member"
+
+                  className="member-photo"
+
+                />
+
+              )}
+
+              <p>
+
+                <strong>
+                  Name:
+                </strong>
+
+                {" "}
+
+                {member.name}
+
+              </p>
+
+              <p>
+
+                <strong>
+                  Department:
+                </strong>
+
+                {" "}
+
+                {member.department}
+
+              </p>
+
+              <QRCodeCanvas
+
+                value={member.name}
+
+                size={100}
+
+              />
+
+            </div>
+
+          </div>
+
+        ))}
+
+      </div>
 
     </div>
 

@@ -296,3 +296,18 @@ button {
   }
 
 }
+.member-photo {
+
+  width: 80px;
+
+  height: 80px;
+
+  border-radius: 50%;
+
+  object-fit: cover;
+
+  margin-bottom: 10px;
+
+  border: 3px solid #0b57d0;
+
+}
