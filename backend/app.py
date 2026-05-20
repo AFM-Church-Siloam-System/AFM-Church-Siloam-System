@@ -143,7 +143,35 @@ def create_tables():
 
     # ================= DEFAULT ADMIN =================
 
-    cursor.execute("""
+   # ================= DEFAULT ADMIN =================
+
+cursor.execute("""
+
+DELETE FROM users
+
+WHERE username = ?
+
+""", ("admin",))
+
+cursor.execute("""
+
+INSERT INTO users (
+
+    username,
+    password,
+    role
+
+)
+
+VALUES (?, ?, ?)
+
+""", (
+
+    "admin",
+    "admin123",
+    "Admin"
+
+))
 
     SELECT * FROM users
     WHERE username = ?
