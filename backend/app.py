@@ -1,18 +1,9 @@
-from flask import (
-    Flask,
-    request,
-    jsonify,
-    send_from_directory
-)
+from flask import Flask, request, jsonify
 from flask_cors import CORS
+from functools import wraps
 import sqlite3
-import bcrypt
-import os
-from werkzeug.utils import secure_filename
 import jwt
 import datetime
-
-from functools import wraps
 
 app = Flask(__name__)
 
@@ -20,14 +11,210 @@ CORS(app)
 
 # ================= SECRET KEY =================
 
-app.config["SECRET_KEY"] = "afm_super_secret_key"
+app.config["SECRET_KEY"] = "afm_secret_key"
+
+# ================= DATABASE =================
 
 DATABASE = "church.db"
-UPLOAD_FOLDER = "uploads"
 
-app.config["UPLOAD_FOLDER"] =
-    UPLOAD_FOLDER
-# ================= JWT TOKEN REQUIRED =================
+# ================= DB CONNECTION =================
+
+def get_db_connection():
+
+    conn = sqlite3.connect(DATABASE)
+
+    conn.row_factory = sqlite3.Row
+
+    return conn
+
+# ================= CREATE TABLES =================
+
+def create_tables():
+
+    conn = get_db_connection()
+
+    cursor = conn.cursor()
+
+    # ================= MEMBERS =================
+
+    cursor.execute("""
+
+    CREATE TABLE IF NOT EXISTS members (
+
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+        name TEXT,
+
+        phone TEXT,
+
+        department TEXT,
+
+        photo TEXT
+
+    )
+
+    """)
+
+    # ================= ATTENDANCE =================
+
+    cursor.execute("""
+
+    CREATE TABLE IF NOT EXISTS attendance (
+
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+        member_name TEXT,
+
+        date TEXT
+
+    )
+
+    """)
+
+    # ================= FINANCES =================
+
+    cursor.execute("""
+
+    CREATE TABLE IF NOT EXISTS finances (
+
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+        description TEXT,
+
+        amount REAL
+
+    )
+
+    """)
+
+    # ================= USERS =================
+
+    cursor.execute("""
+
+    CREATE TABLE IF NOT EXISTS users (
+
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+        username TEXT UNIQUE,
+
+        password TEXT,
+
+        role TEXT
+
+    )
+
+    """)
+
+    # ================= AUDIT LOGS =================
+
+    cursor.execute("""
+
+    CREATE TABLE IF NOT EXISTS audit_logs (
+
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+        action TEXT,
+
+        username TEXT,
+
+        timestamp TEXT
+
+    )
+
+    """)
+
+    # ================= EVENTS =================
+
+    cursor.execute("""
+
+    CREATE TABLE IF NOT EXISTS events (
+
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+        title TEXT,
+
+        description TEXT,
+
+        event_date TEXT
+
+    )
+
+    """)
+
+    # ================= DEFAULT ADMIN =================
+
+    cursor.execute("""
+
+    SELECT * FROM users
+    WHERE username = ?
+
+    """, ("admin",))
+
+    admin = cursor.fetchone()
+
+    if not admin:
+
+        cursor.execute("""
+
+        INSERT INTO users (
+
+            username,
+            password,
+            role
+
+        )
+
+        VALUES (?, ?, ?)
+
+        """, (
+
+            "admin",
+            "admin123",
+            "Admin"
+
+        ))
+
+    conn.commit()
+
+    conn.close()
+
+create_tables()
+
+# ================= AUDIT LOG FUNCTION =================
+
+def add_audit_log(action, username):
+
+    conn = get_db_connection()
+
+    cursor = conn.cursor()
+
+    timestamp = str(datetime.datetime.now())
+
+    cursor.execute("""
+
+    INSERT INTO audit_logs (
+
+        action,
+        username,
+        timestamp
+
+    )
+
+    VALUES (?, ?, ?)
+
+    """, (
+
+        action,
+        username,
+        timestamp
+
+    ))
+
+    conn.commit()
+
+    conn.close()
+
+# ================= TOKEN REQUIRED =================
 
 def token_required(f):
 
@@ -39,16 +226,16 @@ def token_required(f):
 
         if "Authorization" in request.headers:
 
-            bearer = request.headers["Authorization"]
+            token = request.headers["Authorization"]
 
-            token = bearer.split(" ")[1]
+            token = token.replace("Bearer ", "")
 
         if not token:
 
             return jsonify({
 
                 "message":
-                "Token is missing"
+                "Token missing"
 
             }), 401
 
@@ -77,212 +264,6 @@ def token_required(f):
 
     return decorated
 
-# ================= DATABASE CONNECTION =================
-
-def get_db_connection():
-
-    conn = sqlite3.connect(DATABASE)
-
-    conn.row_factory = sqlite3.Row
-
-    return conn
-
-# ================= CREATE TABLES =================
-
-def create_tables():
-
-    conn = get_db_connection()
-
-    cursor = conn.cursor()
-
-    # ================= USERS TABLE =================
-
-    cursor.execute("""
-
-    CREATE TABLE IF NOT EXISTS users (
-
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-
-        username TEXT UNIQUE,
-
-        password TEXT,
-
-        role TEXT
-
-    )
-
-    """)
-
-    # ================= MEMBERS TABLE =================
-
-    cursor.execute("""
-
-    CREATE TABLE IF NOT EXISTS members (
-
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-
-        name TEXT,
-
-        phone TEXT,
-
-        department TEXT,
-
-        photo TEXT
-
-    )
-
-    """)
-
-    # ================= ATTENDANCE TABLE =================
-
-    cursor.execute("""
-
-    CREATE TABLE IF NOT EXISTS attendance (
-
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-
-        member_name TEXT,
-
-        date TEXT
-
-    )
-
-    """)
-
-    # ================= FINANCES TABLE =================
-
-    cursor.execute("""
-
-    CREATE TABLE IF NOT EXISTS finances (
-
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-
-        description TEXT,
-
-        amount REAL
-
-    )
-
-    """)
-
-    # ================= AUDIT LOGS TABLE =================
-
-    cursor.execute("""
-
-    CREATE TABLE IF NOT EXISTS audit_logs (
-
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-
-        action TEXT,
-
-        username TEXT,
-
-        date TEXT
-
-    )
-
-    """)
-
-    # ================= CREATE DEFAULT ADMIN =================
-
-    cursor.execute("""
-
-    SELECT * FROM users
-    WHERE username=?
-
-    """, ("admin",))
-
-    admin = cursor.fetchone()
-
-    if not admin:
-
-        hashed_password = bcrypt.hashpw(
-
-            "1234".encode("utf-8"),
-
-            bcrypt.gensalt()
-
-        ).decode("utf-8")
-
-        cursor.execute("""
-
-        INSERT INTO users (
-
-            username,
-            password,
-            role
-
-        )
-
-        VALUES (?, ?, ?)
-
-        """, (
-
-            "admin",
-            hashed_password,
-            "Admin"
-
-        ))
-
-    conn.commit()
-
-    conn.close()
-
-# RUN TABLE CREATION
-
-create_tables()
-
-# ================= ADD AUDIT LOG =================
-
-def add_audit_log(action, username):
-
-    conn = get_db_connection()
-
-    cursor = conn.cursor()
-
-    current_date = str(
-
-        datetime.datetime.now()
-
-    )
-
-    cursor.execute("""
-
-    INSERT INTO audit_logs (
-
-        action,
-        username,
-        date
-
-    )
-
-    VALUES (?, ?, ?)
-
-    """, (
-
-        action,
-        username,
-        current_date
-
-    ))
-
-    conn.commit()
-
-    conn.close()
-
-# ================= HOME =================
-
-@app.route("/")
-
-def home():
-
-    return jsonify({
-
-        "message":
-        "AFM Church Backend Running"
-
-    })
-
 # ================= LOGIN =================
 
 @app.route("/login", methods=["POST"])
@@ -302,11 +283,14 @@ def login():
     cursor.execute("""
 
     SELECT * FROM users
-    WHERE username=?
+
+    WHERE username = ?
+    AND password = ?
 
     """, (
 
         username,
+        password
 
     ))
 
@@ -314,37 +298,25 @@ def login():
 
     conn.close()
 
-    if user and bcrypt.checkpw(
+    if user:
 
-        password.encode("utf-8"),
+        token = jwt.encode(
 
-        user["password"].encode("utf-8")
+            {
 
-    ):
+                "username": username,
 
-        token = jwt.encode({
+                "exp":
 
-            "username":
-            user["username"],
+                datetime.datetime.utcnow()
 
-            "role":
-            user["role"],
+                + datetime.timedelta(hours=8)
 
-            "exp":
-            datetime.datetime.utcnow() +
-            datetime.timedelta(hours=12)
+            },
 
-        },
+            app.config["SECRET_KEY"],
 
-        app.config["SECRET_KEY"],
-
-        algorithm="HS256")
-
-        add_audit_log(
-
-            "User logged in",
-
-            username
+            algorithm="HS256"
 
         )
 
@@ -352,224 +324,23 @@ def login():
 
             "success": True,
 
-            "message":
-            "Login successful",
+            "message": "Login successful",
 
-            "role":
-            user["role"],
+            "role": user["role"],
 
-            "token":
-            token
+            "token": token
 
         })
-
-    else:
-
-        return jsonify({
-
-            "success": False,
-
-            "message":
-            "Invalid username or password"
-
-        })
-
-# ================= GET USERS =================
-
-@app.route("/users", methods=["GET"])
-
-@token_required
-
-def get_users():
-
-    conn = get_db_connection()
-
-    cursor = conn.cursor()
-
-    cursor.execute("""
-
-    SELECT id, username, role
-    FROM users
-
-    """)
-
-    users = cursor.fetchall()
-
-    conn.close()
-
-    return jsonify([dict(row) for row in users])
-
-# ================= CREATE USER =================
-
-@app.route("/create_user", methods=["POST"])
-
-@token_required
-
-def create_user():
-
-    data = request.get_json()
-
-    username = data.get("username")
-
-    password = data.get("password")
-
-    role = data.get("role")
-
-    hashed_password = bcrypt.hashpw(
-
-        password.encode("utf-8"),
-
-        bcrypt.gensalt()
-
-    ).decode("utf-8")
-
-    conn = get_db_connection()
-
-    cursor = conn.cursor()
-
-    try:
-
-        cursor.execute("""
-
-        INSERT INTO users (
-
-            username,
-            password,
-            role
-
-        )
-
-        VALUES (?, ?, ?)
-
-        """, (
-
-            username,
-            hashed_password,
-            role
-
-        ))
-
-        conn.commit()
-
-        conn.close()
-
-        add_audit_log(
-
-            f"Created user: {username}",
-
-            "Admin"
-
-        )
-
-        return jsonify({
-
-            "success": True,
-
-            "message":
-            "User created successfully"
-
-        })
-
-    except:
-
-        conn.close()
-
-        return jsonify({
-
-            "success": False,
-
-            "message":
-            "Username already exists"
-
-        })
-
-# ================= UPDATE ROLE =================
-
-@app.route("/update_role/<int:id>", methods=["PUT"])
-
-@token_required
-
-def update_role(id):
-
-    data = request.get_json()
-
-    role = data.get("role")
-
-    conn = get_db_connection()
-
-    cursor = conn.cursor()
-
-    cursor.execute("""
-
-    UPDATE users
-    SET role=?
-    WHERE id=?
-
-    """, (
-
-        role,
-        id
-
-    ))
-
-    conn.commit()
-
-    conn.close()
-
-    add_audit_log(
-
-        f"Updated role for user ID: {id}",
-
-        "Admin"
-
-    )
 
     return jsonify({
 
-        "message":
-        "Role updated successfully"
+        "success": False,
+
+        "message": "Invalid credentials"
 
     })
 
-# ================= DELETE USER =================
-
-@app.route("/delete_user/<int:id>", methods=["DELETE"])
-
-@token_required
-
-def delete_user(id):
-
-    conn = get_db_connection()
-
-    cursor = conn.cursor()
-
-    cursor.execute("""
-
-    DELETE FROM users
-    WHERE id=?
-
-    """, (id,))
-
-    conn.commit()
-
-    conn.close()
-
-    add_audit_log(
-
-        f"Deleted user ID: {id}",
-
-        "Admin"
-
-    )
-
-    return jsonify({
-
-        "message":
-        "User deleted successfully"
-
-    })
-
-# ================= GET MEMBERS =================
+# ================= MEMBERS =================
 
 @app.route("/members", methods=["GET"])
 
@@ -592,45 +363,7 @@ def get_members():
     conn.close()
 
     return jsonify([dict(row) for row in members])
-# ================= UPLOAD PHOTO =================
 
-@app.route("/upload_photo", methods=["POST"])
-
-@token_required
-
-def upload_photo():
-
-    if "photo" not in request.files:
-
-        return jsonify({
-
-            "message":
-            "No photo uploaded"
-
-        }), 400
-
-    photo = request.files["photo"]
-
-    filename = secure_filename(
-        photo.filename
-    )
-
-    filepath = os.path.join(
-
-        app.config["UPLOAD_FOLDER"],
-
-        filename
-
-    )
-
-    photo.save(filepath)
-
-    return jsonify({
-
-        "photo_url":
-        filepath
-
-    })
 # ================= ADD MEMBER =================
 
 @app.route("/add_member", methods=["POST"])
@@ -709,7 +442,7 @@ def delete_member(id):
     cursor.execute("""
 
     DELETE FROM members
-    WHERE id=?
+    WHERE id = ?
 
     """, (id,))
 
@@ -732,7 +465,7 @@ def delete_member(id):
 
     })
 
-# ================= GET ATTENDANCE =================
+# ================= ATTENDANCE =================
 
 @app.route("/attendance", methods=["GET"])
 
@@ -747,6 +480,8 @@ def get_attendance():
     cursor.execute("""
 
     SELECT * FROM attendance
+
+    ORDER BY id DESC
 
     """)
 
@@ -796,14 +531,6 @@ def add_attendance():
 
     conn.close()
 
-    add_audit_log(
-
-        f"Marked attendance for: {member_name}",
-
-        "Admin"
-
-    )
-
     return jsonify({
 
         "message":
@@ -811,7 +538,7 @@ def add_attendance():
 
     })
 
-# ================= GET FINANCES =================
+# ================= FINANCES =================
 
 @app.route("/finances", methods=["GET"])
 
@@ -826,6 +553,8 @@ def get_finances():
     cursor.execute("""
 
     SELECT * FROM finances
+
+    ORDER BY id DESC
 
     """)
 
@@ -875,14 +604,6 @@ def add_finance():
 
     conn.close()
 
-    add_audit_log(
-
-        f"Added finance: {description}",
-
-        "Admin"
-
-    )
-
     return jsonify({
 
         "message":
@@ -890,7 +611,79 @@ def add_finance():
 
     })
 
-# ================= GET AUDIT LOGS =================
+# ================= CREATE USER =================
+
+@app.route("/create_user", methods=["POST"])
+
+@token_required
+
+def create_user():
+
+    data = request.get_json()
+
+    username = data.get("username")
+
+    password = data.get("password")
+
+    role = data.get("role")
+
+    conn = get_db_connection()
+
+    cursor = conn.cursor()
+
+    try:
+
+        cursor.execute("""
+
+        INSERT INTO users (
+
+            username,
+            password,
+            role
+
+        )
+
+        VALUES (?, ?, ?)
+
+        """, (
+
+            username,
+            password,
+            role
+
+        ))
+
+        conn.commit()
+
+        conn.close()
+
+        add_audit_log(
+
+            f"Created user: {username}",
+
+            "Admin"
+
+        )
+
+        return jsonify({
+
+            "message":
+            "User created successfully"
+
+        })
+
+    except:
+
+        conn.close()
+
+        return jsonify({
+
+            "message":
+            "User already exists"
+
+        })
+
+# ================= AUDIT LOGS =================
 
 @app.route("/audit_logs", methods=["GET"])
 
@@ -905,6 +698,7 @@ def get_audit_logs():
     cursor.execute("""
 
     SELECT * FROM audit_logs
+
     ORDER BY id DESC
 
     """)
@@ -914,162 +708,115 @@ def get_audit_logs():
     conn.close()
 
     return jsonify([dict(row) for row in logs])
-# ================= DASHBOARD STATS =================
 
-@app.route("/dashboard_stats", methods=["GET"])
+# ================= EVENTS =================
+
+@app.route("/events", methods=["GET"])
 
 @token_required
 
-def dashboard_stats():
+def get_events():
 
     conn = get_db_connection()
 
     cursor = conn.cursor()
 
-    # MEMBERS
-
     cursor.execute("""
 
-    SELECT COUNT(*) as total
-    FROM members
+    SELECT * FROM events
+
+    ORDER BY event_date ASC
 
     """)
 
-    total_members =
-        cursor.fetchone()["total"]
-
-    # USERS
-
-    cursor.execute("""
-
-    SELECT COUNT(*) as total
-    FROM users
-
-    """)
-
-    total_users =
-        cursor.fetchone()["total"]
-
-    # AUDIT LOGS
-
-    cursor.execute("""
-
-    SELECT COUNT(*) as total
-    FROM audit_logs
-
-    """)
-
-    total_logs =
-        cursor.fetchone()["total"]
-
-    # FINANCES
-
-    cursor.execute("""
-
-    SELECT SUM(amount) as total
-    FROM finances
-
-    """)
-
-    finance_result =
-        cursor.fetchone()["total"]
-
-    total_finances =
-        finance_result if finance_result else 0
+    events = cursor.fetchall()
 
     conn.close()
 
+    return jsonify([dict(row) for row in events])
+
+# ================= ADD EVENT =================
+
+@app.route("/add_event", methods=["POST"])
+
+@token_required
+
+def add_event():
+
+    data = request.get_json()
+
+    title = data.get("title")
+
+    description = data.get("description")
+
+    event_date = data.get("event_date")
+
+    conn = get_db_connection()
+
+    cursor = conn.cursor()
+
+    cursor.execute("""
+
+    INSERT INTO events (
+
+        title,
+        description,
+        event_date
+
+    )
+
+    VALUES (?, ?, ?)
+
+    """, (
+
+        title,
+        description,
+        event_date
+
+    ))
+
+    conn.commit()
+
+    conn.close()
+
+    add_audit_log(
+
+        f"Added event: {title}",
+
+        "Admin"
+
+    )
+
     return jsonify({
 
-        "total_members":
-        total_members,
-
-        "total_users":
-        total_users,
-
-        "total_logs":
-        total_logs,
-
-        "total_finances":
-        total_finances
+        "message":
+        "Event added successfully"
 
     })
-# ================= RESTORE DATABASE =================
 
-@app.route("/restore", methods=["POST"])
+# ================= HOME =================
 
-@token_required
+@app.route("/", methods=["GET"])
 
-def restore_database():
+def home():
 
-    try:
+    return jsonify({
 
-        file = request.files["file"]
+        "message":
+        "AFM Backend Running"
 
-        file.save("church.db")
+    })
 
-        return jsonify({
-
-            "message":
-            "Database restored successfully"
-
-        })
-
-    except:
-
-        return jsonify({
-
-            "message":
-            "Restore failed"
-
-        }), 500
-# ================= BACKUP DATABASE =================
-
-@app.route("/backup", methods=["GET"])
-
-@token_required
-
-def backup_database():
-
-    try:
-
-        with open(
-
-            "church.db",
-
-            "rb"
-
-        ) as file:
-
-            database = file.read()
-
-        return database
-
-    except:
-
-        return jsonify({
-
-            "message":
-            "Backup failed"
-
-        }), 500
 # ================= RUN APP =================
 
 if __name__ == "__main__":
 
-    port = int(
-
-        os.environ.get(
-            "PORT",
-            5000
-        )
-
-    )
-
     app.run(
 
         host="0.0.0.0",
-        port=port,
+
+        port=5000,
+
         debug=True
 
     )
