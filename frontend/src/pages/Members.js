@@ -127,6 +127,88 @@ function Members({
 
   };
 
+  // ================= WHATSAPP =================
+
+  const sendWhatsApp = (
+    const sendBulkWhatsApp = () => {
+
+  if (
+
+    filteredMembers.length === 0
+
+  ) {
+
+    alert(
+      "No members found"
+    );
+
+    return;
+
+  }
+
+  const numbers =
+
+    filteredMembers
+
+      .map(
+
+        (member) =>
+
+          member.phone
+
+      )
+
+      .join(",");
+
+  const message =
+
+    `AFM Church Siloam Announcement:
+
+Greetings church family.
+
+Please remember our upcoming church service and prayer meeting.
+
+God bless you.`;
+
+  const whatsappURL =
+
+    `https://wa.me/${numbers}?text=${encodeURIComponent(message)}`;
+
+  window.open(
+
+    whatsappURL,
+
+    "_blank"
+
+  );
+
+};
+    phone,
+    name
+  ) => {
+
+    const message =
+
+      `Hello ${name},
+
+AFM Church Siloam greetings.
+
+Thank you for being part of our church family.`;
+
+    const whatsappURL =
+
+      `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+
+    window.open(
+
+      whatsappURL,
+
+      "_blank"
+
+    );
+
+  };
+
   return (
 
     <div>
@@ -158,7 +240,11 @@ function Members({
         >
           Export PDF
         </button>
-
+<button
+  onClick={sendBulkWhatsApp}
+>
+  Bulk WhatsApp
+</button>
       </div>
 
       {/* ================= ADD MEMBER ================= */}
@@ -324,6 +410,26 @@ function Members({
 
             >
               Delete
+            </button>
+
+            <button
+
+              onClick={() =>
+
+                sendWhatsApp(
+
+                  member.phone,
+
+                  member.name
+
+                )
+
+              }
+
+            >
+
+              WhatsApp
+
             </button>
 
             {/* ================= MEMBER ID CARD ================= */}
