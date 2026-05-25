@@ -7,6 +7,7 @@ function App() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
 
+  // LOAD MEMBERS
   useEffect(() => {
     fetchMembers();
   }, []);
@@ -17,36 +18,36 @@ function App() {
       const data = await response.json();
       setMembers(data);
     } catch (error) {
-      console.error("Error fetching members:", error);
+      console.log(error);
     }
   };
 
+  // ADD MEMBER
   const addMember = async () => {
     try {
       const response = await fetch(`${API_URL}/members`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "application/json"
         },
         body: JSON.stringify({
           name: name,
-          phone: phone,
-        }),
+          phone: phone
+        })
       });
 
-      if (response.ok) {
-        alert("Member added successfully");
+      const data = await response.json();
 
-        setName("");
-        setPhone("");
+      alert(data.message);
 
-        fetchMembers();
-      } else {
-        alert("Error adding member");
-      }
+      setName("");
+      setPhone("");
+
+      fetchMembers();
+
     } catch (error) {
-      console.error(error);
-      alert("Backend connection failed");
+      console.log(error);
+      alert("Error adding member");
     }
   };
 
@@ -60,7 +61,10 @@ function App() {
           placeholder="Member Name"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          style={{ marginRight: "10px", padding: "10px" }}
+          style={{
+            padding: "10px",
+            marginRight: "10px"
+          }}
         />
 
         <input
@@ -68,10 +72,16 @@ function App() {
           placeholder="Phone Number"
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
-          style={{ marginRight: "10px", padding: "10px" }}
+          style={{
+            padding: "10px",
+            marginRight: "10px"
+          }}
         />
 
-        <button onClick={addMember} style={{ padding: "10px" }}>
+        <button
+          onClick={addMember}
+          style={{ padding: "10px" }}
+        >
           Add Member
         </button>
       </div>
@@ -82,8 +92,8 @@ function App() {
         <p>No members found.</p>
       ) : (
         <ul>
-          {members.map((member, index) => (
-            <li key={index}>
+          {members.map((member) => (
+            <li key={member.id}>
               {member.name} - {member.phone}
             </li>
           ))}
