@@ -1,44 +1,60 @@
-import React, { useEffect, useState } from "react";
-
-const API_URL = "https://afm-backend.onrender.com";
+import React, { useState, useEffect } from "react";
 
 function App() {
+
   const [members, setMembers] = useState([]);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
 
-  // LOAD MEMBERS
+  const API_URL = "https://afm-backend.onrender.com";
+
+  // GET MEMBERS
   const fetchMembers = async () => {
+
     try {
-      const response = await fetch(API_URL + "/members");
+
+      const response = await fetch(
+        `${API_URL}/members`
+      );
 
       const data = await response.json();
 
       setMembers(data);
+
     } catch (error) {
+
       console.log(error);
+
     }
+
   };
 
   useEffect(() => {
+
     fetchMembers();
+
   }, []);
 
   // ADD MEMBER
   const addMember = async () => {
+
     try {
-      const response = await fetch(API_URL + "/members", {
-        method: "POST",
 
-        headers: {
-          "Content-Type": "application/json",
-        },
+      const response = await fetch(
+        `${API_URL}/members`,
+        {
+          method: "POST",
 
-        body: JSON.stringify({
-          name: name,
-          phone: phone,
-        }),
-      });
+          headers: {
+            "Content-Type": "application/json"
+          },
+
+          body: JSON.stringify({
+            name: name,
+            phone: phone
+          })
+        }
+      );
 
       const data = await response.json();
 
@@ -48,52 +64,67 @@ function App() {
       setPhone("");
 
       fetchMembers();
+
     } catch (error) {
+
       console.log(error);
 
       alert("Error adding member");
+
     }
+
   };
 
   return (
+
     <div style={{ padding: "20px" }}>
+
       <h1>AFM Church Siloam System</h1>
 
-      <div style={{ marginBottom: "20px" }}>
-        <input
-          type="text"
-          placeholder="Member Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
+      <input
+        type="text"
+        placeholder="Member Name"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+      />
 
-        <input
-          type="text"
-          placeholder="Phone Number"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-        />
+      <input
+        type="text"
+        placeholder="Phone Number"
+        value={phone}
+        onChange={(e) => setPhone(e.target.value)}
+      />
 
-        <button onClick={addMember}>
-          Add Member
-        </button>
-      </div>
+      <button onClick={addMember}>
+        Add Member
+      </button>
 
       <h2>Church Members</h2>
 
       {members.length === 0 ? (
+
         <p>No members found.</p>
+
       ) : (
+
         <ul>
+
           {members.map((member) => (
+
             <li key={member.id}>
               {member.name} - {member.phone}
             </li>
+
           ))}
+
         </ul>
+
       )}
+
     </div>
+
   );
+
 }
 
 export default App;
