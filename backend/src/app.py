@@ -3,24 +3,22 @@ from flask_cors import CORS
 import sqlite3
 
 app = Flask(__name__)
+
 CORS(app, resources={r"/*": {"origins": "*"}})
 
 DATABASE = "church.db"
 
 
-# =========================
 # DATABASE CONNECTION
-# =========================
 def get_db_connection():
     conn = sqlite3.connect(DATABASE)
     conn.row_factory = sqlite3.Row
     return conn
 
 
-# =========================
-# CREATE TABLES
-# =========================
+# CREATE TABLE
 def create_tables():
+
     conn = get_db_connection()
 
     conn.execute("""
@@ -35,17 +33,13 @@ def create_tables():
     conn.close()
 
 
-# =========================
 # HOME ROUTE
-# =========================
 @app.route("/")
 def home():
     return jsonify({"message": "Backend running"})
 
 
-# =========================
-# GET ALL MEMBERS
-# =========================
+# GET MEMBERS
 @app.route("/members", methods=["GET"])
 def get_members():
 
@@ -60,36 +54,40 @@ def get_members():
     return jsonify([dict(member) for member in members])
 
 
-# =========================
 # ADD MEMBER
-# =========================
 @app.route("/members", methods=["POST"])
 def add_member():
 
-    data = request.json
+    try:
 
-    name = data.get("name")
-    phone = data.get("phone")
+        data = request.get_json()
 
-    if not name or not phone:
-        return jsonify({"error": "Missing data"}), 400
+        name = data.get("name")
+        phone = data.get("phone")
 
-    conn = get_db_connection()
+        if not name or not phone:
+            return jsonify({"error": "Missing fields"}), 400
 
-    conn.execute(
-        "INSERT INTO members (name, phone) VALUES (?, ?)",
-        (name, phone)
-    )
+        conn = get_db_connection()
 
-    conn.commit()
-    conn.close()
+        conn.execute(
+            "INSERT INTO members (name, phone) VALUES (?, ?)",
+            (name, phone)
+        )
 
-    return jsonify({"message": "Member added successfully"})
+        conn.commit()
+        conn.close()
+
+        return jsonify({"message": "Member added successfully"})
+
+    except Exception as e:
+
+        return jsonify({"error": str(e)}), 500
 
 
-# =========================
-# RUN APP
-# =========================
+# START APP
 if __name__ == "__main__":
+
     create_tables()
+
     app.run(host="0.0.0.0", port=5000)
