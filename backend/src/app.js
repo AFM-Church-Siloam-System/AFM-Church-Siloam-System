@@ -80,7 +80,23 @@ def create_tables():
     conn.close()
 
 
-create_tables()
+
+def create_tables():
+    conn = sqlite3.connect("church.db")
+    cursor = conn.cursor()
+
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS members (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT,
+        surname TEXT,
+        phone TEXT,
+        department TEXT
+    )
+    """)
+
+    conn.commit()
+    conn.close()
 
 
 # =========================
