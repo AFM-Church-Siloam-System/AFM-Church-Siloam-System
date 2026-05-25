@@ -10,11 +10,13 @@ function App() {
   // LOAD MEMBERS
   const fetchMembers = async () => {
     try {
-      const response = await fetch(`${API_URL}/members`);
+      const response = await fetch(API_URL + "/members");
+
       const data = await response.json();
+
       setMembers(data);
     } catch (error) {
-      console.error("Error loading members:", error);
+      console.log(error);
     }
   };
 
@@ -24,26 +26,19 @@ function App() {
 
   // ADD MEMBER
   const addMember = async () => {
-    if (!name || !phone) {
-      alert("Please enter name and phone");
-      return;
-    }
-
     try {
-      const response = await fetch(`${API_URL}/members`, {
+      const response = await fetch(API_URL + "/members", {
         method: "POST",
+
         headers: {
           "Content-Type": "application/json",
         },
+
         body: JSON.stringify({
           name: name,
           phone: phone,
         }),
       });
-
-      if (!response.ok) {
-        throw new Error("Failed to add member");
-      }
 
       const data = await response.json();
 
@@ -54,7 +49,8 @@ function App() {
 
       fetchMembers();
     } catch (error) {
-      console.error(error);
+      console.log(error);
+
       alert("Error adding member");
     }
   };
@@ -69,7 +65,6 @@ function App() {
           placeholder="Member Name"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          style={{ marginRight: "10px", padding: "10px" }}
         />
 
         <input
@@ -77,10 +72,9 @@ function App() {
           placeholder="Phone Number"
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
-          style={{ marginRight: "10px", padding: "10px" }}
         />
 
-        <button onClick={addMember} style={{ padding: "10px" }}>
+        <button onClick={addMember}>
           Add Member
         </button>
       </div>
@@ -91,8 +85,8 @@ function App() {
         <p>No members found.</p>
       ) : (
         <ul>
-          {members.map((member, index) => (
-            <li key={index}>
+          {members.map((member) => (
+            <li key={member.id}>
               {member.name} - {member.phone}
             </li>
           ))}
