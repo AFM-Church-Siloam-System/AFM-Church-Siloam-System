@@ -9,20 +9,20 @@ CORS(app)
 DATABASE = "church.db"
 
 
-def get_db_connection():
+def connect_db():
     conn = sqlite3.connect(DATABASE)
     conn.row_factory = sqlite3.Row
     return conn
 
 
-def create_tables():
-    conn = get_db_connection()
+def create_table():
+    conn = connect_db()
 
     conn.execute("""
         CREATE TABLE IF NOT EXISTS members (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            phone TEXT NOT NULL
+            name TEXT,
+            phone TEXT
         )
     """)
 
@@ -30,59 +30,56 @@ def create_tables():
     conn.close()
 
 
+create_table()
+
+
 @app.route("/")
 def home():
     return jsonify({"message": "Backend running"})
 
 
-@app.route("/members", methods=["GET"])
-def get_members():
+@app.route("/members", methods=["GET", "POST"])
+def members():
 
-    conn = get_db_connection()
+    conn = connect_db()
 
-    members = conn.execute(
-        "SELECT * FROM members"
-    ).fetchall()
+    if request.method == "GET":
 
-    conn.close()
+        members = conn.execute(
+            "SELECT * FROM members"
+        ).fetchall()
 
-    return jsonify([
-        {
-            "id": member["id"],
-            "name": member["name"],
-            "phone": member["phone"]
-        }
-        for member in members
-    ])
+        conn.close()
 
+        return jsonify([
+            dict(member) for member in members
+        ])
 
-@app.route("/members", methods=["POST"])
-def add_member():
+    if request.method == "POST":
 
-    data = request.get_json()
+        data = request.get_json()
 
-    name = data["name"]
-    phone = data["phone"]
+        conn.execute(
+            "INSERT INTO members (name, phone) VALUES (?, ?)",
+            (
+                data["name"],
+                data["phone"]
+            )
+        )
 
-    conn = get_db_connection()
+        conn.commit()
+        conn.close()
 
-    conn.execute(
-        "INSERT INTO members (name, phone) VALUES (?, ?)",
-        (name, phone)
-    )
-
-    conn.commit()
-    conn.close()
-
-    return jsonify({
-        "message": "Member added successfully"
-    })
+        return jsonify({
+            "message": "Member added"
+        })
 
 
 if __name__ == "__main__":
 
-    create_tables()
-
     port = int(os.environ.get("PORT", 5000))
 
-    app.run(host="0.0.0.0", port=port)
+    app.run(
+        host="0.0.0.0",
+        port=port
+    )
