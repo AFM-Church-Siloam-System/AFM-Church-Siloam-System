@@ -4,20 +4,23 @@ import sqlite3
 import os
 
 app = Flask(__name__)
-
-CORS(app, resources={r"/*": {"origins": "*"}})
+CORS(app)
 
 DATABASE = "church.db"
 
 
+# =========================
 # DATABASE CONNECTION
+# =========================
 def get_db_connection():
     conn = sqlite3.connect(DATABASE)
     conn.row_factory = sqlite3.Row
     return conn
 
 
-# CREATE TABLE
+# =========================
+# CREATE TABLES
+# =========================
 def create_tables():
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -34,36 +37,38 @@ def create_tables():
     conn.close()
 
 
-create_tables()
-
-
+# =========================
 # HOME ROUTE
+# =========================
 @app.route("/")
 def home():
-    return jsonify({
-        "message": "Backend running"
-    })
+    return jsonify({"message": "Backend running"})
 
 
+# =========================
 # GET MEMBERS
+# =========================
 @app.route("/members", methods=["GET"])
 def get_members():
-
     conn = get_db_connection()
-    cursor = conn.cursor()
-
-    members = cursor.execute(
-        "SELECT * FROM members"
-    ).fetchall()
-
+    members = conn.execute("SELECT * FROM members").fetchall()
     conn.close()
 
-    return jsonify([
-        dict(member) for member in members
-    ])
+    members_list = []
+
+    for member in members:
+        members_list.append({
+            "id": member["id"],
+            "name": member["name"],
+            "phone": member["phone"]
+        })
+
+    return jsonify(members_list)
 
 
+# =========================
 # ADD MEMBER
+# =========================
 @app.route("/members", methods=["POST"])
 def add_member():
 
@@ -72,10 +77,12 @@ def add_member():
     name = data.get("name")
     phone = data.get("phone")
 
-    conn = get_db_connection()
-    cursor = conn.cursor()
+    if not name or not phone:
+        return jsonify({"error": "Missing data"}), 400
 
-    cursor.execute(
+    conn = get_db_connection()
+
+    conn.execute(
         "INSERT INTO members (name, phone) VALUES (?, ?)",
         (name, phone)
     )
@@ -83,13 +90,15 @@ def add_member():
     conn.commit()
     conn.close()
 
-    return jsonify({
-        "message": "Member added successfully"
-    })
+    return jsonify({"message": "Member added successfully"})
 
 
+# =========================
 # START APP
+# =========================
 if __name__ == "__main__":
+
+    create_tables()
 
     port = int(os.environ.get("PORT", 5000))
 
