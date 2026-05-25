@@ -1,66 +1,34 @@
-const handleLogin = async () => {
-
-  try {
-
-    const response =
-      await axios.post(
-
-        `${API}/login`,
-
-        {
-
-          username,
-          password
-
-        }
-
-      );
-
-    console.log(
-      response.data
-    );
-
-    if (
-      response.data.success
-    ) {
-
-      localStorage.setItem(
-        "loggedIn",
-        "true"
-      );
-
-      localStorage.setItem(
-        "role",
-        response.data.role
-      );
-
-      localStorage.setItem(
-        "token",
-        response.data.token
-      );
-
-      setRole(
-        response.data.role
-      );
-
-      setLoggedIn(true);
-
-    } else {
-
-      alert(
-        "Invalid login"
-      );
-
-    }
-
-  } catch (error) {
-
-    console.log(error);
-
-    alert(
-      "Backend connection failed"
-    );
-
+{
+  "name": "frontend",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-scripts": "5.0.1"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
   }
-
-};
+}
