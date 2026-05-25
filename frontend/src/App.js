@@ -8,33 +8,42 @@ function App() {
   const [phone, setPhone] = useState("");
 
   // LOAD MEMBERS
-  useEffect(() => {
-    fetchMembers();
-  }, []);
-
   const fetchMembers = async () => {
     try {
       const response = await fetch(`${API_URL}/members`);
       const data = await response.json();
       setMembers(data);
     } catch (error) {
-      console.log(error);
+      console.error("Error loading members:", error);
     }
   };
 
+  useEffect(() => {
+    fetchMembers();
+  }, []);
+
   // ADD MEMBER
   const addMember = async () => {
+    if (!name || !phone) {
+      alert("Please enter name and phone");
+      return;
+    }
+
     try {
       const response = await fetch(`${API_URL}/members`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           name: name,
-          phone: phone
-        })
+          phone: phone,
+        }),
       });
+
+      if (!response.ok) {
+        throw new Error("Failed to add member");
+      }
 
       const data = await response.json();
 
@@ -44,15 +53,14 @@ function App() {
       setPhone("");
 
       fetchMembers();
-
     } catch (error) {
-      console.log(error);
+      console.error(error);
       alert("Error adding member");
     }
   };
 
   return (
-    <div style={{ padding: "40px" }}>
+    <div style={{ padding: "20px" }}>
       <h1>AFM Church Siloam System</h1>
 
       <div style={{ marginBottom: "20px" }}>
@@ -61,10 +69,7 @@ function App() {
           placeholder="Member Name"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          style={{
-            padding: "10px",
-            marginRight: "10px"
-          }}
+          style={{ marginRight: "10px", padding: "10px" }}
         />
 
         <input
@@ -72,16 +77,10 @@ function App() {
           placeholder="Phone Number"
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
-          style={{
-            padding: "10px",
-            marginRight: "10px"
-          }}
+          style={{ marginRight: "10px", padding: "10px" }}
         />
 
-        <button
-          onClick={addMember}
-          style={{ padding: "10px" }}
-        >
+        <button onClick={addMember} style={{ padding: "10px" }}>
           Add Member
         </button>
       </div>
@@ -92,8 +91,8 @@ function App() {
         <p>No members found.</p>
       ) : (
         <ul>
-          {members.map((member) => (
-            <li key={member.id}>
+          {members.map((member, index) => (
+            <li key={index}>
               {member.name} - {member.phone}
             </li>
           ))}
