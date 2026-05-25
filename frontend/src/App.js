@@ -1,40 +1,28 @@
 import React, { useEffect, useState } from "react";
 
-function App() {
+const API_URL = "https://afm-backend.onrender.com";
 
+function App() {
   const [members, setMembers] = useState([]);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
 
-  const API_URL = "https://afm-backend.onrender.com";
+  useEffect(() => {
+    fetchMembers();
+  }, []);
 
-  // LOAD MEMBERS
   const fetchMembers = async () => {
-
     try {
-
       const response = await fetch(`${API_URL}/members`);
       const data = await response.json();
-
       setMembers(data);
-
     } catch (error) {
-
-      console.error(error);
-
+      console.error("Error fetching members:", error);
     }
   };
 
-  // ADD MEMBER
   const addMember = async () => {
-
-    if (!name || !phone) {
-      alert("Please fill in all fields");
-      return;
-    }
-
     try {
-
       const response = await fetch(`${API_URL}/members`, {
         method: "POST",
         headers: {
@@ -46,45 +34,33 @@ function App() {
         }),
       });
 
-      const data = await response.json();
+      if (response.ok) {
+        alert("Member added successfully");
 
-      alert(data.message);
+        setName("");
+        setPhone("");
 
-      setName("");
-      setPhone("");
-
-      // RELOAD MEMBERS
-      fetchMembers();
-
+        fetchMembers();
+      } else {
+        alert("Error adding member");
+      }
     } catch (error) {
-
       console.error(error);
-      alert("Error adding member");
-
+      alert("Backend connection failed");
     }
   };
 
-  useEffect(() => {
-    fetchMembers();
-  }, []);
-
   return (
-    <div style={{ padding: "30px", fontFamily: "Arial" }}>
-
+    <div style={{ padding: "40px" }}>
       <h1>AFM Church Siloam System</h1>
 
       <div style={{ marginBottom: "20px" }}>
-
         <input
           type="text"
           placeholder="Member Name"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          style={{
-            padding: "10px",
-            width: "250px",
-            marginRight: "10px",
-          }}
+          style={{ marginRight: "10px", padding: "10px" }}
         />
 
         <input
@@ -92,22 +68,12 @@ function App() {
           placeholder="Phone Number"
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
-          style={{
-            padding: "10px",
-            width: "250px",
-            marginRight: "10px",
-          }}
+          style={{ marginRight: "10px", padding: "10px" }}
         />
 
-        <button
-          onClick={addMember}
-          style={{
-            padding: "10px 20px",
-          }}
-        >
+        <button onClick={addMember} style={{ padding: "10px" }}>
           Add Member
         </button>
-
       </div>
 
       <h2>Church Members</h2>
@@ -116,16 +82,13 @@ function App() {
         <p>No members found.</p>
       ) : (
         <ul>
-
-          {members.map((member) => (
-            <li key={member.id}>
+          {members.map((member, index) => (
+            <li key={index}>
               {member.name} - {member.phone}
             </li>
           ))}
-
         </ul>
       )}
-
     </div>
   );
 }
