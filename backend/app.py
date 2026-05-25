@@ -1,6 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import sqlite3
+import os
 
 app = Flask(__name__)
 
@@ -148,7 +149,7 @@ def create_tables():
 
 create_tables()
 
-# ================= HOME ROUTE =================
+# ================= HOME =================
 
 @app.route("/")
 
@@ -502,10 +503,21 @@ def add_event():
 
 if __name__ == "__main__":
 
+    port = int(
+
+        os.environ.get(
+
+            "PORT",
+            5000
+
+        )
+
+    )
+
     app.run(
 
         host="0.0.0.0",
 
-        port=5000
+        port=port
 
     )
