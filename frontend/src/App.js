@@ -8,33 +8,28 @@ function App() {
 
   const API_URL = "https://afm-backend.onrender.com";
 
-  // =========================
   // LOAD MEMBERS
-  // =========================
   const fetchMembers = async () => {
 
     try {
 
       const response = await fetch(`${API_URL}/members`);
-
       const data = await response.json();
 
       setMembers(data);
 
     } catch (error) {
 
-      console.log("Error loading members:", error);
+      console.error(error);
 
     }
   };
 
-  // =========================
   // ADD MEMBER
-  // =========================
   const addMember = async () => {
 
     if (!name || !phone) {
-      alert("Please fill all fields");
+      alert("Please fill in all fields");
       return;
     }
 
@@ -46,8 +41,8 @@ function App() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          name,
-          phone,
+          name: name,
+          phone: phone,
         }),
       });
 
@@ -58,11 +53,13 @@ function App() {
       setName("");
       setPhone("");
 
+      // RELOAD MEMBERS
       fetchMembers();
 
     } catch (error) {
 
-      console.log("Error adding member:", error);
+      console.error(error);
+      alert("Error adding member");
 
     }
   };
@@ -85,8 +82,8 @@ function App() {
           onChange={(e) => setName(e.target.value)}
           style={{
             padding: "10px",
-            marginRight: "10px",
             width: "250px",
+            marginRight: "10px",
           }}
         />
 
@@ -97,8 +94,8 @@ function App() {
           onChange={(e) => setPhone(e.target.value)}
           style={{
             padding: "10px",
-            marginRight: "10px",
             width: "250px",
+            marginRight: "10px",
           }}
         />
 
@@ -106,7 +103,6 @@ function App() {
           onClick={addMember}
           style={{
             padding: "10px 20px",
-            cursor: "pointer",
           }}
         >
           Add Member
@@ -122,13 +118,9 @@ function App() {
         <ul>
 
           {members.map((member) => (
-
             <li key={member.id}>
-
-              <strong>{member.name}</strong> - {member.phone}
-
+              {member.name} - {member.phone}
             </li>
-
           ))}
 
         </ul>
