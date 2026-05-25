@@ -4,23 +4,20 @@ import sqlite3
 import os
 
 app = Flask(__name__)
-CORS(app)
+
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 DATABASE = "church.db"
 
 
-# =========================
 # DATABASE CONNECTION
-# =========================
 def get_db_connection():
     conn = sqlite3.connect(DATABASE)
     conn.row_factory = sqlite3.Row
     return conn
 
 
-# =========================
-# CREATE TABLES
-# =========================
+# CREATE TABLE
 def create_tables():
     conn = get_db_connection()
     cursor = conn.cursor()
@@ -37,9 +34,10 @@ def create_tables():
     conn.close()
 
 
-# =========================
+create_tables()
+
+
 # HOME ROUTE
-# =========================
 @app.route("/")
 def home():
     return jsonify({
@@ -47,55 +45,50 @@ def home():
     })
 
 
-# =========================
-# MEMBERS ROUTE
-# =========================
-@app.route("/members", methods=["GET", "POST"])
-def members():
+# GET MEMBERS
+@app.route("/members", methods=["GET"])
+def get_members():
 
     conn = get_db_connection()
     cursor = conn.cursor()
 
-    # GET MEMBERS
-    if request.method == "GET":
+    members = cursor.execute(
+        "SELECT * FROM members"
+    ).fetchall()
 
-        members = cursor.execute(
-            "SELECT * FROM members"
-        ).fetchall()
+    conn.close()
 
-        conn.close()
-
-        return jsonify([
-            dict(member) for member in members
-        ])
-
-    # ADD MEMBER
-    if request.method == "POST":
-
-        data = request.get_json()
-
-        name = data.get("name")
-        phone = data.get("phone")
-
-        cursor.execute(
-            "INSERT INTO members (name, phone) VALUES (?, ?)",
-            (name, phone)
-        )
-
-        conn.commit()
-        conn.close()
-
-        return jsonify({
-            "message": "Member added successfully"
-        })
+    return jsonify([
+        dict(member) for member in members
+    ])
 
 
-# =========================
+# ADD MEMBER
+@app.route("/members", methods=["POST"])
+def add_member():
+
+    data = request.get_json()
+
+    name = data.get("name")
+    phone = data.get("phone")
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "INSERT INTO members (name, phone) VALUES (?, ?)",
+        (name, phone)
+    )
+
+    conn.commit()
+    conn.close()
+
+    return jsonify({
+        "message": "Member added successfully"
+    })
+
+
 # START APP
-# =========================
-
-create_tables()
-
 if __name__ == "__main__":
 
     port = int(os.environ.get("PORT", 5000))
