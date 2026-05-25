@@ -9,23 +9,16 @@ CORS(app)
 DATABASE = "church.db"
 
 
-# =========================
-# DATABASE CONNECTION
-# =========================
 def get_db_connection():
     conn = sqlite3.connect(DATABASE)
     conn.row_factory = sqlite3.Row
     return conn
 
 
-# =========================
-# CREATE TABLES
-# =========================
 def create_tables():
     conn = get_db_connection()
-    cursor = conn.cursor()
 
-    cursor.execute("""
+    conn.execute("""
         CREATE TABLE IF NOT EXISTS members (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
@@ -37,48 +30,39 @@ def create_tables():
     conn.close()
 
 
-# =========================
-# HOME ROUTE
-# =========================
 @app.route("/")
 def home():
     return jsonify({"message": "Backend running"})
 
 
-# =========================
-# GET MEMBERS
-# =========================
 @app.route("/members", methods=["GET"])
 def get_members():
+
     conn = get_db_connection()
-    members = conn.execute("SELECT * FROM members").fetchall()
+
+    members = conn.execute(
+        "SELECT * FROM members"
+    ).fetchall()
+
     conn.close()
 
-    members_list = []
-
-    for member in members:
-        members_list.append({
+    return jsonify([
+        {
             "id": member["id"],
             "name": member["name"],
             "phone": member["phone"]
-        })
+        }
+        for member in members
+    ])
 
-    return jsonify(members_list)
 
-
-# =========================
-# ADD MEMBER
-# =========================
 @app.route("/members", methods=["POST"])
 def add_member():
 
     data = request.get_json()
 
-    name = data.get("name")
-    phone = data.get("phone")
-
-    if not name or not phone:
-        return jsonify({"error": "Missing data"}), 400
+    name = data["name"]
+    phone = data["phone"]
 
     conn = get_db_connection()
 
@@ -90,12 +74,11 @@ def add_member():
     conn.commit()
     conn.close()
 
-    return jsonify({"message": "Member added successfully"})
+    return jsonify({
+        "message": "Member added successfully"
+    })
 
 
-# =========================
-# START APP
-# =========================
 if __name__ == "__main__":
 
     create_tables()
