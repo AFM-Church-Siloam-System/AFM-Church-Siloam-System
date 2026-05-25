@@ -148,7 +148,43 @@ def create_tables():
     conn.close()
 
 create_tables()
+# ================= FORCE ADMIN USER =================
 
+conn = get_db_connection()
+
+cursor = conn.cursor()
+
+cursor.execute("""
+
+DELETE FROM users
+
+WHERE username = ?
+
+""", ("admin",))
+
+cursor.execute("""
+
+INSERT INTO users (
+
+    username,
+    password,
+    role
+
+)
+
+VALUES (?, ?, ?)
+
+""", (
+
+    "admin",
+    "admin123",
+    "Admin"
+
+))
+
+conn.commit()
+
+conn.close()
 # ================= HOME =================
 
 @app.route("/")
