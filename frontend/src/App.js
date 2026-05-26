@@ -7,17 +7,18 @@ function App() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
 
-  // LOAD MEMBERS
+  // FETCH MEMBERS
   const fetchMembers = async () => {
     try {
       const response = await fetch(`${API_URL}/members`);
       const data = await response.json();
       setMembers(data);
     } catch (error) {
-      console.error("Error loading members:", error);
+      console.error("Error fetching members:", error);
     }
   };
 
+  // LOAD MEMBERS ON START
   useEffect(() => {
     fetchMembers();
   }, []);
@@ -36,8 +37,6 @@ function App() {
         }),
       });
 
-      const data = await response.json();
-
       if (response.ok) {
         alert("Member added successfully");
 
@@ -46,7 +45,7 @@ function App() {
 
         fetchMembers();
       } else {
-        alert(data.error || "Error adding member");
+        alert("Error adding member");
       }
     } catch (error) {
       console.error(error);
@@ -55,7 +54,7 @@ function App() {
   };
 
   return (
-    <div style={{ padding: "30px" }}>
+    <div style={{ padding: "30px", fontFamily: "Arial" }}>
       <h1>AFM Church Siloam System</h1>
 
       <div style={{ marginBottom: "20px" }}>
@@ -64,7 +63,11 @@ function App() {
           placeholder="Member Name"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          style={{ marginRight: "10px", padding: "10px" }}
+          style={{
+            padding: "10px",
+            marginRight: "10px",
+            width: "220px",
+          }}
         />
 
         <input
@@ -72,10 +75,20 @@ function App() {
           placeholder="Phone Number"
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
-          style={{ marginRight: "10px", padding: "10px" }}
+          style={{
+            padding: "10px",
+            marginRight: "10px",
+            width: "220px",
+          }}
         />
 
-        <button onClick={addMember} style={{ padding: "10px" }}>
+        <button
+          onClick={addMember}
+          style={{
+            padding: "10px 20px",
+            cursor: "pointer",
+          }}
+        >
           Add Member
         </button>
       </div>
