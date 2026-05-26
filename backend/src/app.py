@@ -9,20 +9,16 @@ CORS(app)
 DATABASE = "church.db"
 
 
-def connect_db():
+# CREATE DATABASE
+def init_db():
     conn = sqlite3.connect(DATABASE)
-    conn.row_factory = sqlite3.Row
-    return conn
+    cursor = conn.cursor()
 
-
-def create_table():
-    conn = connect_db()
-
-    conn.execute("""
+    cursor.execute("""
         CREATE TABLE IF NOT EXISTS members (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT,
-            phone TEXT
+            name TEXT NOT NULL,
+            phone TEXT NOT NULL
         )
     """)
 
@@ -30,56 +26,54 @@ def create_table():
     conn.close()
 
 
-create_table()
-
-
+# HOME ROUTE
 @app.route("/")
 def home():
     return jsonify({"message": "Backend running"})
 
 
-@app.route("/members", methods=["GET", "POST"])
-def members():
+# GET MEMBERS
+@app.route("/members", methods=["GET"])
+def get_members():
+    conn = sqlite3.connect(DATABASE)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
 
-    conn = connect_db()
+    cursor.execute("SELECT * FROM members")
+    members = cursor.fetchall()
 
-    if request.method == "GET":
+    conn.close()
 
-        members = conn.execute(
-            "SELECT * FROM members"
-        ).fetchall()
-
-        conn.close()
-
-        return jsonify([
-            dict(member) for member in members
-        ])
-
-    if request.method == "POST":
-
-        data = request.get_json()
-
-        conn.execute(
-            "INSERT INTO members (name, phone) VALUES (?, ?)",
-            (
-                data["name"],
-                data["phone"]
-            )
-        )
-
-        conn.commit()
-        conn.close()
-
-        return jsonify({
-            "message": "Member added"
-        })
+    return jsonify([dict(member) for member in members])
 
 
+# ADD MEMBER
+@app.route("/members", methods=["POST"])
+def add_member():
+
+    data = request.get_json()
+
+    name = data.get("name")
+    phone = data.get("phone")
+
+    conn = sqlite3.connect(DATABASE)
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "INSERT INTO members (name, phone) VALUES (?, ?)",
+        (name, phone)
+    )
+
+    conn.commit()
+    conn.close()
+
+    return jsonify({"message": "Member added successfully"})
+
+
+# START APP
 if __name__ == "__main__":
+    init_db()
 
     port = int(os.environ.get("PORT", 5000))
 
-    app.run(
-        host="0.0.0.0",
-        port=port
-    )
+    app.run(host="0.0.0.0", port=port)
