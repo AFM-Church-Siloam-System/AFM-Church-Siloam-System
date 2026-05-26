@@ -56,7 +56,51 @@ def get_members():
 
 
 # ADD MEMBER
-@app.route("/members", methods=["POST"])
+@app.route("/members", methods=["GET", "POST"])
+def members():
+
+    if request.method == "GET":
+
+        conn = sqlite3.connect(DATABASE)
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT * FROM members")
+        rows = cursor.fetchall()
+
+        members = []
+
+        for row in rows:
+            members.append({
+                "id": row[0],
+                "name": row[1],
+                "phone": row[2]
+            })
+
+        conn.close()
+
+        return jsonify(members)
+
+    if request.method == "POST":
+
+        data = request.get_json()
+
+        name = data.get("name")
+        phone = data.get("phone")
+
+        conn = sqlite3.connect(DATABASE)
+        cursor = conn.cursor()
+
+        cursor.execute(
+            "INSERT INTO members (name, phone) VALUES (?, ?)",
+            (name, phone)
+        )
+
+        conn.commit()
+        conn.close()
+
+        return jsonify({
+            "message": "Member added"
+        })
 def add_member():
     data = request.get_json()
 
