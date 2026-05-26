@@ -1,98 +1,100 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
+
+const API_URL = "https://afm-backend.onrender.com";
 
 function App() {
-
   const [members, setMembers] = useState([]);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
 
   // LOAD MEMBERS
-  const loadMembers = () => {
-
-    fetch("https://afm-backend.onrender.com/members")
-      .then((res) => res.json())
-      .then((data) => setMembers(data));
-
+  const fetchMembers = async () => {
+    try {
+      const response = await fetch(`${API_URL}/members`);
+      const data = await response.json();
+      setMembers(data);
+    } catch (error) {
+      console.error("Error loading members:", error);
+    }
   };
 
   useEffect(() => {
-
-    loadMembers();
-
+    fetchMembers();
   }, []);
 
   // ADD MEMBER
-  const addMember = () => {
+  const addMember = async () => {
+    try {
+      const response = await fetch(`${API_URL}/members`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: name,
+          phone: phone,
+        }),
+      });
 
-    fetch("https://afm-backend.onrender.com/members", {
+      const data = await response.json();
 
-      method: "POST",
-
-      headers: {
-        "Content-Type": "application/json"
-      },
-
-      body: JSON.stringify({
-        name: name,
-        phone: phone
-      })
-
-    })
-      .then((res) => res.json())
-      .then(() => {
-
-        alert("Member Added");
+      if (response.ok) {
+        alert("Member added successfully");
 
         setName("");
         setPhone("");
 
-        loadMembers();
-
-      })
-      .catch(() => {
-
-        alert("Error adding member");
-
-      });
-
+        fetchMembers();
+      } else {
+        alert(data.error || "Error adding member");
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Backend connection failed");
+    }
   };
 
   return (
-
-    <div style={{ padding: 20 }}>
-
+    <div style={{ padding: "30px" }}>
       <h1>AFM Church Siloam System</h1>
 
-      <input
-        placeholder="Member Name"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-      />
+      <div style={{ marginBottom: "20px" }}>
+        <input
+          type="text"
+          placeholder="Member Name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          style={{ marginRight: "10px", padding: "10px" }}
+        />
 
-      <input
-        placeholder="Phone Number"
-        value={phone}
-        onChange={(e) => setPhone(e.target.value)}
-      />
+        <input
+          type="text"
+          placeholder="Phone Number"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          style={{ marginRight: "10px", padding: "10px" }}
+        />
 
-      <button onClick={addMember}>
-        Add Member
-      </button>
+        <button onClick={addMember} style={{ padding: "10px" }}>
+          Add Member
+        </button>
+      </div>
 
       <h2>Church Members</h2>
 
-      {members.map((member) => (
-
-        <p key={member.id}>
-          {member.name} - {member.phone}
-        </p>
-
-      ))}
-
+      {members.length === 0 ? (
+        <p>No members found.</p>
+      ) : (
+        <ul>
+          {members.map((member) => (
+            <li key={member.id}>
+              {member.name} - {member.phone}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
-
   );
-
 }
 
 export default App;
